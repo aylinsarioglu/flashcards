@@ -7,16 +7,24 @@ import { starterCards } from '../data/starterCards';
 
 export default function StudyScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [completed, setCompleted] = useState(false);
 
   const currentCard = starterCards[currentIndex];
 
   function handleGood() {
-    setCurrentIndex((prev) =>
-      prev === starterCards.length - 1 ? 0 : prev + 1,
-    );
+    if (currentIndex === starterCards.length - 1) {
+      setCompleted(true);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
   }
 
   function handleAgain() {}
+
+  function handleRestart() {
+    setCompleted(false);
+    setCurrentIndex(0);
+  }
 
   return (
     <SafeAreaView
@@ -25,78 +33,118 @@ export default function StudyScreen() {
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-      <Pressable
-        style={{
-          backgroundColor: '#e5e5e5',
-          borderRadius: 20,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          marginBottom: 8,
-        }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-          }}>
-          Collocations (2)
-        </Text>
-      </Pressable>
-      <Text
-        style={{
-          fontSize: 14,
-          color: '#666',
-          marginBottom: 24,
-        }}>
-        Card {currentIndex + 1} / {starterCards.length}
-      </Text>
-      <Flashcard
-        key={currentCard.id}
-        front={currentCard.front}
-        back={currentCard.back}
-        example={currentCard.example}
-      />
-      <View
-        style={{
-          flexDirection: 'row',
-          marginTop: 24,
-          gap: 16,
-        }}>
-        <Pressable
-          onPress={handleAgain}
-          style={{
-            width: 120,
-            backgroundColor: '#e5e5e5',
-            borderRadius: 8,
-            paddingVertical: 12,
-            alignItems: 'center',
-          }}>
+      {completed ? (
+        <>
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: 'bold',
+              marginBottom: 8,
+            }}>
+            Session Complete 🎉
+          </Text>
           <Text
             style={{
               fontSize: 16,
-              fontWeight: '600',
+              color: '#666',
+              marginBottom: 32,
             }}>
-            Again
+            You reviewed all cards
           </Text>
-        </Pressable>
-        <Pressable
-          onPress={handleGood}
-          style={{
-            width: 120,
-            backgroundColor: '#007AFF',
-            borderRadius: 8,
-            paddingVertical: 12,
-            alignItems: 'center',
-          }}>
+          <Pressable
+            onPress={handleRestart}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? '#0056b3' : '#007AFF',
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 8,
+            })}>
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: '600',
+              }}>
+              Restart Session
+            </Text>
+          </Pressable>
+        </>
+      ) : (
+        <>
+          <Pressable
+            style={{
+              backgroundColor: '#e5e5e5',
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              marginBottom: 8,
+            }}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+              }}>
+              Collocations (2)
+            </Text>
+          </Pressable>
           <Text
             style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: '#fff',
+              fontSize: 14,
+              color: '#666',
+              marginBottom: 24,
             }}>
-            Good
+            Card {currentIndex + 1} / {starterCards.length}
           </Text>
-        </Pressable>
-      </View>
+          <Flashcard
+            key={currentCard.id}
+            front={currentCard.front}
+            back={currentCard.back}
+            example={currentCard.example}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              marginTop: 24,
+              gap: 16,
+            }}>
+            <Pressable
+              onPress={handleAgain}
+              style={{
+                width: 120,
+                backgroundColor: '#e5e5e5',
+                borderRadius: 8,
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}>
+                Again
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleGood}
+              style={{
+                width: 120,
+                backgroundColor: '#007AFF',
+                borderRadius: 8,
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#fff',
+                }}>
+                Good
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }
