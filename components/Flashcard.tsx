@@ -5,14 +5,20 @@ type FlashcardProps = {
   front: string;
   back: string;
   example?: string;
+  exampleTranslation?: string;
 };
 
-export default function Flashcard({ front, back, example }: FlashcardProps) {
-  const [showBack, setShowBack] = useState(false);
+export default function Flashcard({
+  front,
+  back,
+  example,
+  exampleTranslation,
+}: FlashcardProps) {
+  const [flipped, setFlipped] = useState(false);
 
   return (
     <Pressable
-      onPress={() => setShowBack((prev) => !prev)}
+      onPress={() => setFlipped((prev) => !prev)}
       style={{
         width: 320,
         height: 220,
@@ -31,18 +37,27 @@ export default function Flashcard({ front, back, example }: FlashcardProps) {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        {showBack ? (
-          <>
+        {!flipped ? (
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: '600',
+              textAlign: 'center',
+            }}>
+            {front}
+          </Text>
+        ) : (
+          <View style={{ width: '100%' }}>
             <Text
               style={{
                 fontSize: 22,
                 fontWeight: '600',
                 textAlign: 'center',
-                marginBottom: example ? 16 : 0,
+                marginBottom: 12,
               }}>
               {back}
             </Text>
-            {example ? (
+            {example && (
               <View style={{ alignSelf: 'stretch' }}>
                 <Text
                   style={{
@@ -62,17 +77,19 @@ export default function Flashcard({ front, back, example }: FlashcardProps) {
                   {example}
                 </Text>
               </View>
-            ) : null}
-          </>
-        ) : (
-          <Text
-            style={{
-              fontSize: 22,
-              fontWeight: '600',
-              textAlign: 'center',
-            }}>
-            {front}
-          </Text>
+            )}
+            {exampleTranslation && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: '#666',
+                  marginTop: 6,
+                  alignSelf: 'stretch',
+                }}>
+                {exampleTranslation}
+              </Text>
+            )}
+          </View>
         )}
       </View>
     </Pressable>

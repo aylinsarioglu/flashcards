@@ -3,5 +3,6 @@ export type Card = {
   front: string;
   back: string;
   example?: string;
+  exampleTranslation?: string;
   category: string;
 };
