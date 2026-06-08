@@ -29,6 +29,43 @@ export default function StudyScreen() {
     setCurrentIndex(0);
   }
 
+  if (cards.length === 0) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Text
+          style={{
+            fontSize: 32,
+            fontWeight: 'bold',
+            marginBottom: 32,
+          }}>
+          No Cards Yet
+        </Text>
+        <Pressable
+          onPress={() => router.replace('/add-card')}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#0056b3' : '#007AFF',
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+          })}>
+          <Text
+            style={{
+              color: '#fff',
+              fontSize: 16,
+              fontWeight: '600',
+            }}>
+            Create Cards
+          </Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Pressable

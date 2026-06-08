@@ -62,6 +62,23 @@ export default function HomeScreen() {
             Add Card
           </Text>
         </Pressable>
+        <Pressable
+          onPress={() => router.push('/manage-cards')}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#d1d1d1' : '#e5e5e5',
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+            alignItems: 'center',
+          })}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '600',
+            }}>
+            Manage Cards
+          </Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
