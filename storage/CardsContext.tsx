@@ -1,7 +1,14 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import { starterCards } from '../data/starterCards';
 import type { Card } from '../types/card';
+import { loadCards, saveCards } from './cardsStorage';
 
 type CardsContextValue = {
   cards: Card[];
@@ -16,6 +23,22 @@ type CardsProviderProps = {
 
 export function CardsProvider({ children }: CardsProviderProps) {
   const [cards, setCards] = useState<Card[]>(starterCards);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    loadCards().then((stored) => {
+      setCards(stored ?? starterCards);
+      setIsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    saveCards(cards);
+  }, [cards, isLoaded]);
 
   return (
     <CardsContext.Provider value={{ cards, setCards }}>

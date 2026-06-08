@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import Flashcard from '../components/Flashcard';
+import ProgressBar from '../components/ProgressBar';
 import { useCards } from '../storage/CardsContext';
 
 export default function StudyScreen() {
@@ -89,6 +90,12 @@ export default function StudyScreen() {
           </>
         ) : (
           <>
+            <View style={{ marginBottom: 16 }}>
+              <ProgressBar
+                current={currentIndex + 1}
+                total={cards.length}
+              />
+            </View>
             <Pressable
               style={{
                 backgroundColor: '#e5e5e5',
@@ -105,14 +112,25 @@ export default function StudyScreen() {
                 {currentCard.category} ({cards.length})
               </Text>
             </Pressable>
-            <Text
-              style={{
-                fontSize: 14,
-                color: '#666',
-                marginBottom: 24,
-              }}>
-              Card {currentIndex + 1} / {cards.length}
-            </Text>
+            <View style={{ alignItems: 'center', marginBottom: 24 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: '#666',
+                }}>
+                Card {currentIndex + 1} / {cards.length}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: '#666',
+                  marginTop: 4,
+                }}>
+                {cards.length - (currentIndex + 1) === 0
+                  ? 'Last card'
+                  : `${cards.length - (currentIndex + 1)} cards remaining`}
+              </Text>
+            </View>
             <Flashcard
               key={currentCard.id}
               front={currentCard.front}
