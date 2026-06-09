@@ -46,9 +46,17 @@ export default function ManageCardsScreen() {
           style={{
             fontSize: 12,
             color: '#666',
-            marginBottom: 12,
+            marginBottom: 4,
           }}>
           {item.category}
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            color: '#666',
+            marginBottom: 12,
+          }}>
+          Deck: {item.deck}
         </Text>
         <Pressable
           onPress={() => handleDelete(item.id)}

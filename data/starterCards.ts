@@ -8,6 +8,7 @@ export const starterCards: Card[] = [
     example: 'You need to make a decision.',
     exampleTranslation: 'Bir karar vermen gerekiyor.',
     category: 'Collocations',
+    deck: 'Collocations',
   },
   {
     id: '2',
@@ -16,5 +17,6 @@ export const starterCards: Card[] = [
     example: 'Take responsibility for your actions.',
     exampleTranslation: 'Yaptıklarının sorumluluğunu al.',
     category: 'Collocations',
+    deck: 'Collocations',
   },
 ];

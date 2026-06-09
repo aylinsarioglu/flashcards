@@ -12,14 +12,19 @@ export default function AddCardScreen() {
   const [back, setBack] = useState('');
   const [example, setExample] = useState('');
   const [exampleTranslation, setExampleTranslation] = useState('');
-  const [category, setCategory] = useState('');
+  const [deck, setDeck] = useState('');
 
   function handleAddCard() {
+    if (!front.trim() || !back.trim() || !deck.trim()) {
+      return;
+    }
+
     const newCard: Card = {
       id: Date.now().toString(),
       front,
       back,
-      category,
+      category: deck,
+      deck,
       ...(example ? { example } : {}),
       ...(exampleTranslation ? { exampleTranslation } : {}),
     };
@@ -30,7 +35,7 @@ export default function AddCardScreen() {
     setBack('');
     setExample('');
     setExampleTranslation('');
-    setCategory('');
+    setDeck('');
 
     router.replace('/');
   }
@@ -138,12 +143,12 @@ export default function AddCardScreen() {
             fontWeight: '600',
             marginBottom: 6,
           }}>
-          Category
+          Deck
         </Text>
         <TextInput
-          value={category}
-          onChangeText={setCategory}
-          placeholder="Enter category"
+          value={deck}
+          onChangeText={setDeck}
+          placeholder="Deck Name"
           style={{
             borderWidth: 1,
             borderColor: '#ddd',

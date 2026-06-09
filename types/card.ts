@@ -5,4 +5,5 @@ export type Card = {
   example?: string;
   exampleTranslation?: string;
   category: string;
+  deck: string;
 };
