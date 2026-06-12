@@ -109,23 +109,44 @@ export default function ManageCardsScreen() {
             {item.back}
           </Text>
 
-          <Pressable
-            onPress={() => handleDelete(item.id)}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? '#d70015' : '#ff3b30',
-              paddingVertical: 12,
-              borderRadius: 12,
-              alignItems: 'center',
-            })}>
-            <Text
-              style={{
-                color: '#fff',
-                fontSize: 15,
-                fontWeight: '600',
-              }}>
-              Delete
-            </Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Pressable
+              onPress={() => router.push(`/edit-card?id=${item.id}`)}
+              style={({ pressed }) => ({
+                flex: 1,
+                backgroundColor: pressed ? '#0056b3' : '#007AFF',
+                paddingVertical: 12,
+                borderRadius: 12,
+                alignItems: 'center',
+              })}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 15,
+                  fontWeight: '600',
+                }}>
+                Edit
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => handleDelete(item.id)}
+              style={({ pressed }) => ({
+                flex: 1,
+                backgroundColor: pressed ? '#d70015' : '#ff3b30',
+                paddingVertical: 12,
+                borderRadius: 12,
+                alignItems: 'center',
+              })}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 15,
+                  fontWeight: '600',
+                }}>
+                Delete
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </ContentContainer>
     );

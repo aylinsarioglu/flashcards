@@ -230,6 +230,29 @@ export default function HomeScreen() {
               </Text>
             </Pressable>
             <Pressable
+              onPress={() => router.push('/study?mode=favorites')}
+              style={({ pressed }) => ({
+                backgroundColor: '#fff',
+                paddingVertical: 16,
+                borderRadius: 16,
+                alignItems: 'center',
+                opacity: pressed ? 0.85 : 1,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
+                elevation: 2,
+              })}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#1a1a1a',
+                }}>
+                Review Favorites
+              </Text>
+            </Pressable>
+            <Pressable
               onPress={() => router.push('/add-card')}
               style={({ pressed }) => ({
                 backgroundColor: '#fff',

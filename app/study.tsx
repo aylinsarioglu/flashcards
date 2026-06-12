@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
 import Flashcard from '../components/Flashcard';
@@ -9,33 +9,57 @@ import ProgressBar from '../components/ProgressBar';
 import { useCards } from '../storage/CardsContext';
 
 export default function StudyScreen() {
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+
   const { cards } = useCards();
+  const studyCards =
+    mode === 'favorites'
+      ? cards.filter(
+          (card) =>
+            (card as (typeof card & { favorite?: boolean })).favorite === true,
+        )
+      : cards;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [goodCount, setGoodCount] = useState(0);
+  const [againCount, setAgainCount] = useState(0);
 
-  const currentCard = cards[currentIndex];
+  const currentCard = studyCards[currentIndex];
   const progressPercent =
-    cards.length > 0
-      ? Math.round(((currentIndex + 1) / cards.length) * 100)
+    studyCards.length > 0
+      ? Math.round(((currentIndex + 1) / studyCards.length) * 100)
       : 0;
-  const cardsRemaining = cards.length - (currentIndex + 1);
+  const cardsRemaining = studyCards.length - (currentIndex + 1);
+  const totalAnswers = goodCount + againCount;
+  const accuracyPercent =
+    totalAnswers === 0
+      ? 100
+      : Math.round((goodCount / totalAnswers) * 100);
 
   function handleGood() {
-    if (currentIndex === cards.length - 1) {
+    setGoodCount((prev) => prev + 1);
+
+    if (currentIndex === studyCards.length - 1) {
       setCompleted(true);
     } else {
       setCurrentIndex((prev) => prev + 1);
     }
   }
 
-  function handleAgain() {}
+  function handleAgain() {
+    setAgainCount((prev) => prev + 1);
+  }
 
   function handleRestart() {
     setCompleted(false);
     setCurrentIndex(0);
+    setGoodCount(0);
+    setAgainCount(0);
   }
 
-  if (cards.length === 0) {
+  if (studyCards.length === 0) {
     return (
       <SafeAreaView
         style={{
@@ -184,7 +208,7 @@ export default function StudyScreen() {
                     color: '#007AFF',
                     marginBottom: 8,
                   }}>
-                  {cards.length}
+                  {goodCount}
                 </Text>
                 <Text
                   style={{
@@ -193,7 +217,40 @@ export default function StudyScreen() {
                     fontWeight: '600',
                     textAlign: 'center',
                   }}>
-                  Cards Reviewed
+                  Good Answers
+                </Text>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: '#fff',
+                  borderRadius: 20,
+                  paddingVertical: 24,
+                  paddingHorizontal: 16,
+                  alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 12,
+                  elevation: 4,
+                }}>
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: '700',
+                    color: '#ff9500',
+                    marginBottom: 8,
+                  }}>
+                  {againCount}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: '#666',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                  }}>
+                  Again Presses
                 </Text>
               </View>
               <View
@@ -217,7 +274,7 @@ export default function StudyScreen() {
                     color: '#34c759',
                     marginBottom: 8,
                   }}>
-                  {cards.length}
+                  {accuracyPercent}%
                 </Text>
                 <Text
                   style={{
@@ -226,7 +283,7 @@ export default function StudyScreen() {
                     fontWeight: '600',
                     textAlign: 'center',
                   }}>
-                  Total Cards
+                  Accuracy %
                 </Text>
               </View>
             </View>
@@ -302,7 +359,7 @@ export default function StudyScreen() {
           <View style={{ marginBottom: 12 }}>
             <ProgressBar
               current={currentIndex + 1}
-              total={cards.length}
+              total={studyCards.length}
             />
           </View>
 
