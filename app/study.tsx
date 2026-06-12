@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import ContentContainer from '../components/ContentContainer';
 import Flashcard from '../components/Flashcard';
 import ProgressBar from '../components/ProgressBar';
 import { useCards } from '../storage/CardsContext';
@@ -40,34 +41,62 @@ export default function StudyScreen() {
         style={{
           flex: 1,
           justifyContent: 'center',
-          alignItems: 'center',
           backgroundColor: '#f8f9fa',
+          paddingHorizontal: 24,
         }}>
-        <Text
-          style={{
-            fontSize: 32,
-            fontWeight: 'bold',
-            marginBottom: 32,
-          }}>
-          No Cards Yet
-        </Text>
-        <Pressable
-          onPress={() => router.replace('/add-card')}
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? '#0056b3' : '#007AFF',
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 8,
-          })}>
+        <ContentContainer style={{ alignItems: 'center' }}>
           <Text
             style={{
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: '600',
+              fontSize: 72,
+              marginBottom: 24,
             }}>
-            Create Cards
+            📚
           </Text>
-        </Pressable>
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: 'bold',
+              marginBottom: 12,
+              color: '#1a1a1a',
+              textAlign: 'center',
+            }}>
+            No Cards Yet
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              color: '#666',
+              marginBottom: 40,
+              textAlign: 'center',
+              lineHeight: 24,
+            }}>
+            Create your first flashcard to start learning.
+          </Text>
+          <Pressable
+            onPress={() => router.replace('/add-card')}
+            style={({ pressed }) => ({
+              width: '100%',
+              backgroundColor: '#007AFF',
+              paddingVertical: 18,
+              borderRadius: 16,
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              shadowColor: '#007AFF',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 8,
+              elevation: 4,
+            })}>
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: '600',
+              }}>
+              Create Card
+            </Text>
+          </Pressable>
+        </ContentContainer>
       </SafeAreaView>
     );
   }
@@ -78,14 +107,7 @@ export default function StudyScreen() {
         flex: 1,
         backgroundColor: '#f8f9fa',
       }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-        }}>
+      <ContentContainer style={{ paddingHorizontal: 24, paddingVertical: 12 }}>
         <Pressable onPress={() => router.replace('/')}>
           <Text
             style={{
@@ -96,45 +118,40 @@ export default function StudyScreen() {
             ← Back
           </Text>
         </Pressable>
-        {!completed && (
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '700',
-              color: '#1a1a1a',
-            }}>
-            Study Session
-          </Text>
-        )}
-        <View style={{ width: 60 }} />
-      </View>
+      </ContentContainer>
 
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 24,
-        }}>
-        {completed ? (
-          <View style={{ width: '100%', maxWidth: 320, alignItems: 'center' }}>
-            <Text style={{ fontSize: 72, marginBottom: 16 }}>🎉</Text>
+      {completed ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            paddingHorizontal: 24,
+          }}>
+          <ContentContainer style={{ alignItems: 'center' }}>
             <Text
               style={{
-                fontSize: 32,
+                fontSize: 88,
+                marginBottom: 24,
+              }}>
+              🎉
+            </Text>
+            <Text
+              style={{
+                fontSize: 34,
                 fontWeight: 'bold',
-                marginBottom: 8,
+                marginBottom: 12,
                 color: '#1a1a1a',
                 textAlign: 'center',
               }}>
-              Session Complete 🎉
+              Session Complete
             </Text>
             <Text
               style={{
                 fontSize: 16,
                 color: '#666',
-                marginBottom: 32,
+                marginBottom: 40,
                 textAlign: 'center',
+                lineHeight: 24,
               }}>
               Great job! You finished this study session.
             </Text>
@@ -142,37 +159,38 @@ export default function StudyScreen() {
             <View
               style={{
                 flexDirection: 'row',
-                gap: 12,
+                gap: 16,
                 width: '100%',
-                marginBottom: 32,
+                marginBottom: 40,
               }}>
               <View
                 style={{
                   flex: 1,
                   backgroundColor: '#fff',
-                  borderRadius: 16,
-                  padding: 20,
+                  borderRadius: 20,
+                  paddingVertical: 24,
+                  paddingHorizontal: 16,
                   alignItems: 'center',
                   shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 12,
+                  elevation: 4,
                 }}>
                 <Text
                   style={{
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: '700',
                     color: '#007AFF',
-                    marginBottom: 4,
+                    marginBottom: 8,
                   }}>
                   {cards.length}
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     color: '#666',
-                    fontWeight: '500',
+                    fontWeight: '600',
                     textAlign: 'center',
                   }}>
                   Cards Reviewed
@@ -182,44 +200,51 @@ export default function StudyScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: '#fff',
-                  borderRadius: 16,
-                  padding: 20,
+                  borderRadius: 20,
+                  paddingVertical: 24,
+                  paddingHorizontal: 16,
                   alignItems: 'center',
                   shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 12,
+                  elevation: 4,
                 }}>
                 <Text
                   style={{
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: '700',
                     color: '#34c759',
-                    marginBottom: 4,
+                    marginBottom: 8,
                   }}>
-                  100%
+                  {cards.length}
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     color: '#666',
-                    fontWeight: '500',
+                    fontWeight: '600',
                     textAlign: 'center',
                   }}>
-                  Study Accuracy
+                  Total Cards
                 </Text>
               </View>
             </View>
 
-            <View style={{ width: '100%', gap: 12 }}>
+            <View style={{ width: '100%', gap: 14 }}>
               <Pressable
                 onPress={handleRestart}
                 style={({ pressed }) => ({
-                  backgroundColor: pressed ? '#0056b3' : '#007AFF',
-                  paddingVertical: 16,
-                  borderRadius: 12,
+                  backgroundColor: '#007AFF',
+                  paddingVertical: 18,
+                  borderRadius: 16,
                   alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  shadowColor: '#007AFF',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 8,
+                  elevation: 4,
                 })}>
                 <Text
                   style={{
@@ -227,140 +252,109 @@ export default function StudyScreen() {
                     fontSize: 16,
                     fontWeight: '600',
                   }}>
-                  Restart Session
+                  Study Again
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => router.replace('/')}
                 style={({ pressed }) => ({
-                  backgroundColor: pressed ? '#d1d1d1' : '#e5e5e5',
-                  paddingVertical: 16,
-                  borderRadius: 12,
+                  backgroundColor: '#fff',
+                  paddingVertical: 18,
+                  borderRadius: 16,
                   alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 6,
+                  elevation: 2,
                 })}>
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: '600',
+                    color: '#1a1a1a',
                   }}>
                   Back Home
                 </Text>
               </Pressable>
             </View>
+          </ContentContainer>
+        </View>
+      ) : (
+        <ContentContainer
+          style={{
+            flex: 1,
+            paddingHorizontal: 24,
+            paddingBottom: 24,
+          }}>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: '700',
+              color: '#1a1a1a',
+              textAlign: 'center',
+              marginBottom: 24,
+            }}>
+            📚 Study Session
+          </Text>
+
+          <View style={{ marginBottom: 12 }}>
+            <ProgressBar
+              current={currentIndex + 1}
+              total={cards.length}
+            />
           </View>
-        ) : (
-          <>
-            <View
+
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: '700',
+              color: '#007AFF',
+              textAlign: 'center',
+              marginBottom: 16,
+            }}>
+            {progressPercent}%
+          </Text>
+
+          <Text
+            style={{
+              fontSize: 14,
+              color: '#666',
+              textAlign: 'center',
+              marginBottom: 16,
+            }}>
+            {cardsRemaining === 0
+              ? 'Last card'
+              : `${cardsRemaining} cards remaining`}
+          </Text>
+
+          <View
+            style={{
+              alignSelf: 'center',
+              backgroundColor: '#eef4ff',
+              borderRadius: 20,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              marginBottom: 32,
+            }}>
+            <Text
               style={{
-                width: '100%',
-                maxWidth: 320,
-                backgroundColor: '#fff',
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 24,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 8,
-                elevation: 2,
+                fontSize: 13,
+                fontWeight: '600',
+                color: '#007AFF',
               }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: '#666',
-                  }}>
-                  Progress
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '700',
-                    color: '#007AFF',
-                  }}>
-                  {progressPercent}%
-                </Text>
-              </View>
+              {currentCard.deck}
+            </Text>
+          </View>
 
-              <ProgressBar
-                current={currentIndex + 1}
-                total={cards.length}
-              />
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginTop: 16,
-                  paddingTop: 16,
-                  borderTopWidth: 1,
-                  borderTopColor: '#f0f0f0',
-                }}>
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: '#999',
-                      marginBottom: 4,
-                    }}>
-                    Current
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: '#1a1a1a',
-                    }}>
-                    Card {currentIndex + 1} / {cards.length}
-                  </Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: '#999',
-                      marginBottom: 4,
-                    }}>
-                    Remaining
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: '#1a1a1a',
-                    }}>
-                    {cardsRemaining === 0
-                      ? 'Last card'
-                      : `${cardsRemaining} cards`}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <Pressable
-              style={{
-                backgroundColor: '#e5e5e5',
-                borderRadius: 20,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                marginBottom: 24,
-              }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '500',
-                }}>
-                {currentCard.category} ({cards.length})
-              </Text>
-            </Pressable>
-
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 32,
+            }}>
             <Flashcard
               key={currentCard.id}
               front={currentCard.front}
@@ -369,52 +363,47 @@ export default function StudyScreen() {
               example={currentCard.example}
               exampleTranslation={currentCard.exampleTranslation}
             />
+          </View>
 
-            <View
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            <Pressable
+              onPress={handleAgain}
               style={{
-                flexDirection: 'row',
-                marginTop: 32,
-                gap: 16,
+                flex: 1,
+                backgroundColor: '#e5e5e5',
+                borderRadius: 12,
+                paddingVertical: 16,
+                alignItems: 'center',
               }}>
-              <Pressable
-                onPress={handleAgain}
+              <Text
                 style={{
-                  width: 120,
-                  backgroundColor: '#e5e5e5',
-                  borderRadius: 12,
-                  paddingVertical: 14,
-                  alignItems: 'center',
+                  fontSize: 16,
+                  fontWeight: '600',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                  }}>
-                  Again
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleGood}
+                Again
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleGood}
+              style={{
+                flex: 1,
+                backgroundColor: '#007AFF',
+                borderRadius: 12,
+                paddingVertical: 16,
+                alignItems: 'center',
+              }}>
+              <Text
                 style={{
-                  width: 120,
-                  backgroundColor: '#007AFF',
-                  borderRadius: 12,
-                  paddingVertical: 14,
-                  alignItems: 'center',
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#fff',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: '#fff',
-                  }}>
-                  Good
-                </Text>
-              </Pressable>
-            </View>
-          </>
-        )}
-      </View>
+                Good
+              </Text>
+            </Pressable>
+          </View>
+        </ContentContainer>
+      )}
     </SafeAreaView>
   );
 }

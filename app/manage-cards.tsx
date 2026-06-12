@@ -2,6 +2,7 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import ContentContainer from '../components/ContentContainer';
 import { useCards } from '../storage/CardsContext';
 import type { Card } from '../types/card';
 
@@ -14,118 +15,119 @@ export default function ManageCardsScreen() {
 
   function renderCard({ item }: { item: Card }) {
     return (
-      <View
-        style={{
-          width: '100%',
-          maxWidth: 360,
-          backgroundColor: '#fff',
-          borderRadius: 16,
-          padding: 20,
-          marginBottom: 16,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
-          elevation: 3,
-        }}>
+      <ContentContainer>
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            width: '100%',
+            backgroundColor: '#fff',
+            borderRadius: 16,
+            padding: 20,
             marginBottom: 16,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+            elevation: 3,
           }}>
           <View
             style={{
-              backgroundColor: '#eef4ff',
-              borderRadius: 20,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-            }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: '#007AFF',
-              }}>
-              {item.deck}
-            </Text>
-          </View>
-          <Pressable
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#f5f5f5',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              justifyContent: 'center',
+              marginBottom: 16,
             }}>
-            <Text style={{ fontSize: 18 }}>☆</Text>
-          </Pressable>
-        </View>
+            <View
+              style={{
+                backgroundColor: '#eef4ff',
+                borderRadius: 20,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: '#007AFF',
+                }}>
+                {item.deck}
+              </Text>
+            </View>
+            <Pressable
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: '#f5f5f5',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Text style={{ fontSize: 18 }}>☆</Text>
+            </Pressable>
+          </View>
 
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: '700',
-            color: '#999',
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            marginBottom: 6,
-          }}>
-          Front
-        </Text>
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: '700',
-            color: '#1a1a1a',
-            marginBottom: 16,
-            lineHeight: 28,
-          }}>
-          {item.front}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: '700',
-            color: '#999',
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            marginBottom: 6,
-          }}>
-          Back
-        </Text>
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: '500',
-            color: '#444',
-            marginBottom: 20,
-            lineHeight: 24,
-          }}>
-          {item.back}
-        </Text>
-
-        <Pressable
-          onPress={() => handleDelete(item.id)}
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? '#d70015' : '#ff3b30',
-            paddingVertical: 12,
-            borderRadius: 12,
-            alignItems: 'center',
-          })}>
           <Text
             style={{
-              color: '#fff',
-              fontSize: 15,
-              fontWeight: '600',
+              fontSize: 11,
+              fontWeight: '700',
+              color: '#999',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 6,
             }}>
-            Delete
+            Front
           </Text>
-        </Pressable>
-      </View>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '700',
+              color: '#1a1a1a',
+              marginBottom: 16,
+              lineHeight: 28,
+            }}>
+            {item.front}
+          </Text>
+
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '700',
+              color: '#999',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 6,
+            }}>
+            Back
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: '#444',
+              marginBottom: 20,
+              lineHeight: 24,
+            }}>
+            {item.back}
+          </Text>
+
+          <Pressable
+            onPress={() => handleDelete(item.id)}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? '#d70015' : '#ff3b30',
+              paddingVertical: 12,
+              borderRadius: 12,
+              alignItems: 'center',
+            })}>
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 15,
+                fontWeight: '600',
+              }}>
+              Delete
+            </Text>
+          </Pressable>
+        </View>
+      </ContentContainer>
     );
   }
 
@@ -135,12 +137,12 @@ export default function ManageCardsScreen() {
         flex: 1,
         backgroundColor: '#f8f9fa',
       }}>
-      <View
+      <ContentContainer
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 16,
+          paddingHorizontal: 24,
           paddingVertical: 12,
         }}>
         <Pressable onPress={() => router.replace('/')}>
@@ -162,29 +164,67 @@ export default function ManageCardsScreen() {
           Manage Cards
         </Text>
         <View style={{ width: 60 }} />
-      </View>
+      </ContentContainer>
 
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}
         renderItem={renderCard}
         contentContainerStyle={{
+          alignItems: 'center',
           paddingHorizontal: 24,
           paddingTop: 8,
           paddingBottom: 32,
         }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingTop: 48 }}>
+          <ContentContainer style={{ alignItems: 'center', paddingTop: 64 }}>
+            <Text style={{ fontSize: 72, marginBottom: 24 }}>📚</Text>
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: 'bold',
+                marginBottom: 12,
+                color: '#1a1a1a',
+                textAlign: 'center',
+              }}>
+              No Cards Yet
+            </Text>
             <Text
               style={{
                 fontSize: 16,
                 color: '#666',
+                marginBottom: 32,
                 textAlign: 'center',
+                lineHeight: 24,
               }}>
-              No cards yet. Add your first card from the home screen.
+              Create your first flashcard to start learning.
             </Text>
-          </View>
+            <Pressable
+              onPress={() => router.push('/add-card')}
+              style={({ pressed }) => ({
+                width: '100%',
+                backgroundColor: '#007AFF',
+                paddingVertical: 18,
+                borderRadius: 16,
+                alignItems: 'center',
+                opacity: pressed ? 0.85 : 1,
+                shadowColor: '#007AFF',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+                elevation: 4,
+              })}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}>
+                Create Card
+              </Text>
+            </Pressable>
+          </ContentContainer>
         }
       />
     </SafeAreaView>

@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import ContentContainer from '../components/ContentContainer';
 import { useCards } from '../storage/CardsContext';
 import type { Card } from '../types/card';
 
@@ -45,10 +46,10 @@ export default function AddCardScreen() {
       style={{
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
         paddingHorizontal: 24,
       }}>
-      <View style={{ width: '100%', maxWidth: 320 }}>
+      <ContentContainer>
         <Text
           style={{
             fontSize: 14,
@@ -69,6 +70,7 @@ export default function AddCardScreen() {
             paddingVertical: 10,
             marginBottom: 16,
             fontSize: 16,
+            backgroundColor: '#fff',
           }}
         />
         <Text
@@ -91,6 +93,7 @@ export default function AddCardScreen() {
             paddingVertical: 10,
             marginBottom: 16,
             fontSize: 16,
+            backgroundColor: '#fff',
           }}
         />
         <Text
@@ -113,6 +116,7 @@ export default function AddCardScreen() {
             paddingVertical: 10,
             marginBottom: 16,
             fontSize: 16,
+            backgroundColor: '#fff',
           }}
         />
         <Text
@@ -135,6 +139,7 @@ export default function AddCardScreen() {
             paddingVertical: 10,
             marginBottom: 16,
             fontSize: 16,
+            backgroundColor: '#fff',
           }}
         />
         <Text
@@ -157,6 +162,7 @@ export default function AddCardScreen() {
             paddingVertical: 10,
             marginBottom: 24,
             fontSize: 16,
+            backgroundColor: '#fff',
           }}
         />
         <Pressable
@@ -176,7 +182,7 @@ export default function AddCardScreen() {
             Add Card
           </Text>
         </Pressable>
-      </View>
+      </ContentContainer>
     </SafeAreaView>
   );
 }
