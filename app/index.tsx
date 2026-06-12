@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
@@ -7,7 +7,7 @@ import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 
 export default function HomeScreen() {
-  const { cards } = useCards();
+  const { cards, dailyProgress, dailyGoal, currentStreak } = useCards();
 
   const totalCards = cards.length;
   const favorites = 0;
@@ -15,6 +15,13 @@ export default function HomeScreen() {
   const reviewedToday = 0;
   const progressPercent =
     totalCards > 0 ? Math.round((reviewedToday / totalCards) * 100) : 0;
+  const challengeProgressPercent =
+    dailyGoal > 0
+      ? Math.min(
+          100,
+          Math.round((dailyProgress.cardsReviewedToday / dailyGoal) * 100),
+        )
+      : 0;
 
   const deckGroups = cards.reduce<Record<string, number>>((groups, card) => {
     groups[card.deck] = (groups[card.deck] ?? 0) + 1;
@@ -33,11 +40,13 @@ export default function HomeScreen() {
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
       }}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-        }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingVertical: spacing.lg,
+          paddingBottom: spacing.xl,
+        }}
+        showsVerticalScrollIndicator={false}>
         <ContentContainer>
           <Text
             style={{
@@ -158,6 +167,93 @@ export default function HomeScreen() {
                 Decks
               </Text>
             </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: radius.lg,
+              padding: 20,
+              marginBottom: 40,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: spacing.sm,
+              elevation: 3,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: 8,
+              }}>
+              🔥 Current Streak
+            </Text>
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '700',
+                color: colors.primary,
+              }}>
+              {currentStreak} Days
+            </Text>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: radius.lg,
+              padding: 20,
+              marginBottom: 40,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: spacing.sm,
+              elevation: 3,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: 12,
+              }}>
+              Today's Challenge
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.muted,
+                marginBottom: 12,
+              }}>
+              {dailyProgress.cardsReviewedToday} / {dailyGoal} Cards Reviewed
+            </Text>
+            <View
+              style={{
+                height: 10,
+                backgroundColor: '#e5e5e5',
+                borderRadius: 5,
+                overflow: 'hidden',
+                marginBottom: spacing.sm,
+              }}>
+              <View
+                style={{
+                  width: `${challengeProgressPercent}%`,
+                  height: '100%',
+                  backgroundColor: colors.primary,
+                  borderRadius: 5,
+                }}
+              />
+            </View>
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.muted,
+                fontWeight: '500',
+              }}>
+              {challengeProgressPercent}%
+            </Text>
           </View>
 
           <View
@@ -361,7 +457,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </ContentContainer>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

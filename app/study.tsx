@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -8,37 +8,56 @@ import Flashcard from '../components/Flashcard';
 import ProgressBar from '../components/ProgressBar';
 import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
+import type { Card } from '../types/card';
 
 export default function StudyScreen() {
   const params = useLocalSearchParams<{ mode?: string; deck?: string }>();
   const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const deck = Array.isArray(params.deck) ? params.deck[0] : params.deck;
 
-  const { cards } = useCards();
+  const { cards, incrementCardsReviewedToday } = useCards();
 
-  let studyCards =
-    mode === 'favorites'
-      ? cards.filter(
-          (card) =>
-            (card as (typeof card & { favorite?: boolean })).favorite === true,
-        )
-      : cards;
+  const filteredStudyCards = useMemo(() => {
+    let result =
+      mode === 'favorites'
+        ? cards.filter(
+            (card) =>
+              (card as (typeof card & { favorite?: boolean })).favorite ===
+              true,
+          )
+        : cards;
 
-  if (deck) {
-    studyCards = studyCards.filter((card) => card.deck === deck);
-  }
+    if (deck) {
+      result = result.filter((card) => card.deck === deck);
+    }
 
+    return result;
+  }, [cards, mode, deck]);
+
+  const [studyQueue, setStudyQueue] = useState<Card[]>(filteredStudyCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [goodCount, setGoodCount] = useState(0);
   const [againCount, setAgainCount] = useState(0);
+  const [flipResetKeys, setFlipResetKeys] = useState<Record<string, number>>(
+    {},
+  );
 
-  const currentCard = studyCards[currentIndex];
+  useEffect(() => {
+    setStudyQueue(filteredStudyCards);
+    setCurrentIndex(0);
+    setCompleted(false);
+    setGoodCount(0);
+    setAgainCount(0);
+    setFlipResetKeys({});
+  }, [filteredStudyCards]);
+
+  const currentCard = studyQueue[currentIndex];
   const progressPercent =
-    studyCards.length > 0
-      ? Math.round(((currentIndex + 1) / studyCards.length) * 100)
+    studyQueue.length > 0
+      ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
       : 0;
-  const cardsRemaining = studyCards.length - (currentIndex + 1);
+  const cardsRemaining = studyQueue.length - (currentIndex + 1);
   const totalAnswers = goodCount + againCount;
   const accuracyPercent =
     totalAnswers === 0
@@ -46,9 +65,10 @@ export default function StudyScreen() {
       : Math.round((goodCount / totalAnswers) * 100);
 
   function handleGood() {
+    incrementCardsReviewedToday();
     setGoodCount((prev) => prev + 1);
 
-    if (currentIndex === studyCards.length - 1) {
+    if (currentIndex === studyQueue.length - 1) {
       setCompleted(true);
     } else {
       setCurrentIndex((prev) => prev + 1);
@@ -57,6 +77,12 @@ export default function StudyScreen() {
 
   function handleAgain() {
     setAgainCount((prev) => prev + 1);
+
+    if (currentIndex === studyQueue.length - 1) {
+      setCurrentIndex(0);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
   }
 
   function handleRestart() {
@@ -64,9 +90,11 @@ export default function StudyScreen() {
     setCurrentIndex(0);
     setGoodCount(0);
     setAgainCount(0);
+    setFlipResetKeys({});
+    setStudyQueue(filteredStudyCards);
   }
 
-  if (studyCards.length === 0) {
+  if (studyQueue.length === 0) {
     return (
       <SafeAreaView
         style={{
@@ -367,7 +395,7 @@ export default function StudyScreen() {
           <View style={{ marginBottom: 12 }}>
             <ProgressBar
               current={currentIndex + 1}
-              total={studyCards.length}
+              total={studyQueue.length}
             />
           </View>
 
@@ -421,7 +449,7 @@ export default function StudyScreen() {
               marginBottom: spacing.xl,
             }}>
             <Flashcard
-              key={currentCard.id}
+              key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
               front={currentCard.front}
               back={currentCard.back}
               deck={currentCard.deck}
