@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
+import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import type { Card } from '../types/card';
 
@@ -19,14 +20,14 @@ export default function ManageCardsScreen() {
         <View
           style={{
             width: '100%',
-            backgroundColor: '#fff',
-            borderRadius: 16,
+            backgroundColor: colors.card,
+            borderRadius: radius.lg,
             padding: 20,
-            marginBottom: 16,
+            marginBottom: spacing.md,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.08,
-            shadowRadius: 8,
+            shadowRadius: spacing.sm,
             elevation: 3,
           }}>
           <View
@@ -34,12 +35,12 @@ export default function ManageCardsScreen() {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 16,
+              marginBottom: spacing.md,
             }}>
             <View
               style={{
                 backgroundColor: '#eef4ff',
-                borderRadius: 20,
+                borderRadius: radius.xl,
                 paddingHorizontal: 12,
                 paddingVertical: 6,
               }}>
@@ -47,7 +48,7 @@ export default function ManageCardsScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: '#007AFF',
+                  color: colors.primary,
                 }}>
                 {item.deck}
               </Text>
@@ -80,8 +81,8 @@ export default function ManageCardsScreen() {
             style={{
               fontSize: 20,
               fontWeight: '700',
-              color: '#1a1a1a',
-              marginBottom: 16,
+              color: colors.text,
+              marginBottom: spacing.md,
               lineHeight: 28,
             }}>
             {item.front}
@@ -114,14 +115,14 @@ export default function ManageCardsScreen() {
               onPress={() => router.push(`/edit-card?id=${item.id}`)}
               style={({ pressed }) => ({
                 flex: 1,
-                backgroundColor: pressed ? '#0056b3' : '#007AFF',
+                backgroundColor: pressed ? '#0056b3' : colors.primary,
                 paddingVertical: 12,
-                borderRadius: 12,
+                borderRadius: radius.md,
                 alignItems: 'center',
               })}>
               <Text
                 style={{
-                  color: '#fff',
+                  color: colors.card,
                   fontSize: 15,
                   fontWeight: '600',
                 }}>
@@ -134,12 +135,12 @@ export default function ManageCardsScreen() {
                 flex: 1,
                 backgroundColor: pressed ? '#d70015' : '#ff3b30',
                 paddingVertical: 12,
-                borderRadius: 12,
+                borderRadius: radius.md,
                 alignItems: 'center',
               })}>
               <Text
                 style={{
-                  color: '#fff',
+                  color: colors.card,
                   fontSize: 15,
                   fontWeight: '600',
                 }}>
@@ -156,14 +157,14 @@ export default function ManageCardsScreen() {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: colors.background,
       }}>
       <ContentContainer
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 24,
+          paddingHorizontal: spacing.lg,
           paddingVertical: 12,
         }}>
         <Pressable onPress={() => router.replace('/')}>
@@ -171,7 +172,7 @@ export default function ManageCardsScreen() {
             style={{
               fontSize: 16,
               fontWeight: '600',
-              color: '#007AFF',
+              color: colors.primary,
             }}>
             ← Back
           </Text>
@@ -180,7 +181,7 @@ export default function ManageCardsScreen() {
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: '#1a1a1a',
+            color: colors.text,
           }}>
           Manage Cards
         </Text>
@@ -193,20 +194,20 @@ export default function ManageCardsScreen() {
         renderItem={renderCard}
         contentContainerStyle={{
           alignItems: 'center',
-          paddingHorizontal: 24,
-          paddingTop: 8,
-          paddingBottom: 32,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.xl,
         }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <ContentContainer style={{ alignItems: 'center', paddingTop: 64 }}>
-            <Text style={{ fontSize: 72, marginBottom: 24 }}>📚</Text>
+            <Text style={{ fontSize: 72, marginBottom: spacing.lg }}>📚</Text>
             <Text
               style={{
                 fontSize: 28,
                 fontWeight: 'bold',
                 marginBottom: 12,
-                color: '#1a1a1a',
+                color: colors.text,
                 textAlign: 'center',
               }}>
               No Cards Yet
@@ -214,10 +215,10 @@ export default function ManageCardsScreen() {
             <Text
               style={{
                 fontSize: 16,
-                color: '#666',
-                marginBottom: 32,
+                color: colors.muted,
+                marginBottom: spacing.xl,
                 textAlign: 'center',
-                lineHeight: 24,
+                lineHeight: spacing.lg,
               }}>
               Create your first flashcard to start learning.
             </Text>
@@ -225,20 +226,20 @@ export default function ManageCardsScreen() {
               onPress={() => router.push('/add-card')}
               style={({ pressed }) => ({
                 width: '100%',
-                backgroundColor: '#007AFF',
+                backgroundColor: colors.primary,
                 paddingVertical: 18,
-                borderRadius: 16,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 opacity: pressed ? 0.85 : 1,
-                shadowColor: '#007AFF',
+                shadowColor: colors.primary,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.25,
-                shadowRadius: 8,
+                shadowRadius: spacing.sm,
                 elevation: 4,
               })}>
               <Text
                 style={{
-                  color: '#fff',
+                  color: colors.card,
                   fontSize: 16,
                   fontWeight: '600',
                 }}>

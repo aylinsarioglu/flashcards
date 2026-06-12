@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
+import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 
 export default function HomeScreen() {
@@ -10,17 +11,27 @@ export default function HomeScreen() {
 
   const totalCards = cards.length;
   const favorites = 0;
-  const decks = new Set(cards.map((card) => card.deck)).size;
+  const deckCount = new Set(cards.map((card) => card.deck)).size;
   const reviewedToday = 0;
   const progressPercent =
     totalCards > 0 ? Math.round((reviewedToday / totalCards) * 100) : 0;
+
+  const deckGroups = cards.reduce<Record<string, number>>((groups, card) => {
+    groups[card.deck] = (groups[card.deck] ?? 0) + 1;
+    return groups;
+  }, {});
+
+  const deckList = Object.entries(deckGroups).map(([name, count]) => ({
+    name,
+    count,
+  }));
 
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: '#f8f9fa',
-        paddingHorizontal: 24,
+        backgroundColor: colors.background,
+        paddingHorizontal: spacing.lg,
       }}>
       <View
         style={{
@@ -32,8 +43,8 @@ export default function HomeScreen() {
             style={{
               fontSize: 40,
               fontWeight: 'bold',
-              marginBottom: 8,
-              color: '#1a1a1a',
+              marginBottom: spacing.sm,
+              color: colors.text,
               textAlign: 'center',
             }}>
             Flashcards
@@ -41,7 +52,7 @@ export default function HomeScreen() {
           <Text
             style={{
               fontSize: 16,
-              color: '#666',
+              color: colors.muted,
               marginBottom: 40,
               textAlign: 'center',
             }}>
@@ -57,21 +68,21 @@ export default function HomeScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: '#fff',
-                borderRadius: 16,
-                padding: 16,
+                backgroundColor: colors.card,
+                borderRadius: radius.lg,
+                padding: spacing.md,
                 alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowRadius: spacing.sm,
                 elevation: 3,
               }}>
               <Text
                 style={{
                   fontSize: 24,
                   fontWeight: 'bold',
-                  color: '#007AFF',
+                  color: colors.primary,
                   marginBottom: 4,
                 }}>
                 {totalCards}
@@ -79,7 +90,7 @@ export default function HomeScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: '#666',
+                  color: colors.muted,
                   fontWeight: '500',
                 }}>
                 Total Cards
@@ -88,14 +99,14 @@ export default function HomeScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: '#fff',
-                borderRadius: 16,
-                padding: 16,
+                backgroundColor: colors.card,
+                borderRadius: radius.lg,
+                padding: spacing.md,
                 alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowRadius: spacing.sm,
                 elevation: 3,
               }}>
               <Text
@@ -110,7 +121,7 @@ export default function HomeScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: '#666',
+                  color: colors.muted,
                   fontWeight: '500',
                 }}>
                 Favorites
@@ -119,29 +130,29 @@ export default function HomeScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: '#fff',
-                borderRadius: 16,
-                padding: 16,
+                backgroundColor: colors.card,
+                borderRadius: radius.lg,
+                padding: spacing.md,
                 alignItems: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowRadius: spacing.sm,
                 elevation: 3,
               }}>
               <Text
                 style={{
                   fontSize: 24,
                   fontWeight: 'bold',
-                  color: '#34c759',
+                  color: colors.success,
                   marginBottom: 4,
                 }}>
-                {decks}
+                {deckCount}
               </Text>
               <Text
                 style={{
                   fontSize: 12,
-                  color: '#666',
+                  color: colors.muted,
                   fontWeight: '500',
                 }}>
                 Decks
@@ -151,21 +162,21 @@ export default function HomeScreen() {
 
           <View
             style={{
-              backgroundColor: '#fff',
-              borderRadius: 16,
+              backgroundColor: colors.card,
+              borderRadius: radius.lg,
               padding: 20,
               marginBottom: 40,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.08,
-              shadowRadius: 8,
+              shadowRadius: spacing.sm,
               elevation: 3,
             }}>
             <Text
               style={{
                 fontSize: 16,
                 fontWeight: '700',
-                color: '#1a1a1a',
+                color: colors.text,
                 marginBottom: 12,
               }}>
               Today's Progress
@@ -173,7 +184,7 @@ export default function HomeScreen() {
             <Text
               style={{
                 fontSize: 14,
-                color: '#666',
+                color: colors.muted,
                 marginBottom: 12,
               }}>
               {reviewedToday} / {totalCards} Cards Reviewed
@@ -184,13 +195,13 @@ export default function HomeScreen() {
                 backgroundColor: '#e5e5e5',
                 borderRadius: 5,
                 overflow: 'hidden',
-                marginBottom: 8,
+                marginBottom: spacing.sm,
               }}>
               <View
                 style={{
                   width: `${progressPercent}%`,
                   height: '100%',
-                  backgroundColor: '#007AFF',
+                  backgroundColor: colors.primary,
                   borderRadius: 5,
                 }}
               />
@@ -198,31 +209,81 @@ export default function HomeScreen() {
             <Text
               style={{
                 fontSize: 12,
-                color: '#666',
+                color: colors.muted,
                 fontWeight: '500',
               }}>
               {progressPercent}%
             </Text>
           </View>
 
+          {deckList.length > 0 && (
+            <View style={{ marginBottom: 40 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: colors.text,
+                  marginBottom: spacing.md,
+                }}>
+                My Decks
+              </Text>
+              <View style={{ gap: 12 }}>
+                {deckList.map(({ name, count }) => (
+                  <Pressable
+                    key={name}
+                    onPress={() => router.push(`/study?deck=${name}`)}
+                    style={({ pressed }) => ({
+                      backgroundColor: colors.card,
+                      borderRadius: radius.lg,
+                      padding: spacing.md,
+                      opacity: pressed ? 0.85 : 1,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.08,
+                      shadowRadius: spacing.sm,
+                      elevation: 3,
+                    })}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: '700',
+                        color: colors.text,
+                        marginBottom: 4,
+                      }}>
+                      {name}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: colors.muted,
+                        fontWeight: '500',
+                      }}>
+                      {count} cards
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+
           <View style={{ gap: 12 }}>
             <Pressable
               onPress={() => router.push('/study')}
               style={({ pressed }) => ({
-                backgroundColor: '#007AFF',
-                paddingVertical: 16,
-                borderRadius: 16,
+                backgroundColor: colors.primary,
+                paddingVertical: spacing.md,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 opacity: pressed ? 0.85 : 1,
-                shadowColor: '#007AFF',
+                shadowColor: colors.primary,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.25,
-                shadowRadius: 8,
+                shadowRadius: spacing.sm,
                 elevation: 4,
               })}>
               <Text
                 style={{
-                  color: '#fff',
+                  color: colors.card,
                   fontSize: 16,
                   fontWeight: '600',
                 }}>
@@ -232,9 +293,9 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => router.push('/study?mode=favorites')}
               style={({ pressed }) => ({
-                backgroundColor: '#fff',
-                paddingVertical: 16,
-                borderRadius: 16,
+                backgroundColor: colors.card,
+                paddingVertical: spacing.md,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 opacity: pressed ? 0.85 : 1,
                 shadowColor: '#000',
@@ -247,7 +308,7 @@ export default function HomeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#1a1a1a',
+                  color: colors.text,
                 }}>
                 Review Favorites
               </Text>
@@ -255,9 +316,9 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => router.push('/add-card')}
               style={({ pressed }) => ({
-                backgroundColor: '#fff',
-                paddingVertical: 16,
-                borderRadius: 16,
+                backgroundColor: colors.card,
+                paddingVertical: spacing.md,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 opacity: pressed ? 0.85 : 1,
                 shadowColor: '#000',
@@ -270,7 +331,7 @@ export default function HomeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#1a1a1a',
+                  color: colors.text,
                 }}>
                 ➕ Add Card
               </Text>
@@ -278,9 +339,9 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => router.push('/manage-cards')}
               style={({ pressed }) => ({
-                backgroundColor: '#fff',
-                paddingVertical: 16,
-                borderRadius: 16,
+                backgroundColor: colors.card,
+                paddingVertical: spacing.md,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 opacity: pressed ? 0.85 : 1,
                 shadowColor: '#000',
@@ -293,7 +354,7 @@ export default function HomeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#1a1a1a',
+                  color: colors.text,
                 }}>
                 🗂 Manage Cards
               </Text>

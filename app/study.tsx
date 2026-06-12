@@ -6,20 +6,27 @@ import { router, useLocalSearchParams } from 'expo-router';
 import ContentContainer from '../components/ContentContainer';
 import Flashcard from '../components/Flashcard';
 import ProgressBar from '../components/ProgressBar';
+import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 
 export default function StudyScreen() {
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; deck?: string }>();
   const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+  const deck = Array.isArray(params.deck) ? params.deck[0] : params.deck;
 
   const { cards } = useCards();
-  const studyCards =
+
+  let studyCards =
     mode === 'favorites'
       ? cards.filter(
           (card) =>
             (card as (typeof card & { favorite?: boolean })).favorite === true,
         )
       : cards;
+
+  if (deck) {
+    studyCards = studyCards.filter((card) => card.deck === deck);
+  }
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -65,14 +72,14 @@ export default function StudyScreen() {
         style={{
           flex: 1,
           justifyContent: 'center',
-          backgroundColor: '#f8f9fa',
-          paddingHorizontal: 24,
+          backgroundColor: colors.background,
+          paddingHorizontal: spacing.lg,
         }}>
         <ContentContainer style={{ alignItems: 'center' }}>
           <Text
             style={{
               fontSize: 72,
-              marginBottom: 24,
+              marginBottom: spacing.lg,
             }}>
             📚
           </Text>
@@ -81,7 +88,7 @@ export default function StudyScreen() {
               fontSize: 32,
               fontWeight: 'bold',
               marginBottom: 12,
-              color: '#1a1a1a',
+              color: colors.text,
               textAlign: 'center',
             }}>
             No Cards Yet
@@ -89,10 +96,10 @@ export default function StudyScreen() {
           <Text
             style={{
               fontSize: 16,
-              color: '#666',
+              color: colors.muted,
               marginBottom: 40,
               textAlign: 'center',
-              lineHeight: 24,
+              lineHeight: spacing.lg,
             }}>
             Create your first flashcard to start learning.
           </Text>
@@ -100,20 +107,20 @@ export default function StudyScreen() {
             onPress={() => router.replace('/add-card')}
             style={({ pressed }) => ({
               width: '100%',
-              backgroundColor: '#007AFF',
+              backgroundColor: colors.primary,
               paddingVertical: 18,
-              borderRadius: 16,
+              borderRadius: radius.lg,
               alignItems: 'center',
               opacity: pressed ? 0.85 : 1,
-              shadowColor: '#007AFF',
+              shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.25,
-              shadowRadius: 8,
+              shadowRadius: spacing.sm,
               elevation: 4,
             })}>
             <Text
               style={{
-                color: '#fff',
+                color: colors.card,
                 fontSize: 16,
                 fontWeight: '600',
               }}>
@@ -129,15 +136,16 @@ export default function StudyScreen() {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: colors.background,
       }}>
-      <ContentContainer style={{ paddingHorizontal: 24, paddingVertical: 12 }}>
+      <ContentContainer
+        style={{ paddingHorizontal: spacing.lg, paddingVertical: 12 }}>
         <Pressable onPress={() => router.replace('/')}>
           <Text
             style={{
               fontSize: 16,
               fontWeight: '600',
-              color: '#007AFF',
+              color: colors.primary,
             }}>
             ← Back
           </Text>
@@ -149,13 +157,13 @@ export default function StudyScreen() {
           style={{
             flex: 1,
             justifyContent: 'center',
-            paddingHorizontal: 24,
+            paddingHorizontal: spacing.lg,
           }}>
           <ContentContainer style={{ alignItems: 'center' }}>
             <Text
               style={{
                 fontSize: 88,
-                marginBottom: 24,
+                marginBottom: spacing.lg,
               }}>
               🎉
             </Text>
@@ -164,7 +172,7 @@ export default function StudyScreen() {
                 fontSize: 34,
                 fontWeight: 'bold',
                 marginBottom: 12,
-                color: '#1a1a1a',
+                color: colors.text,
                 textAlign: 'center',
               }}>
               Session Complete
@@ -172,10 +180,10 @@ export default function StudyScreen() {
             <Text
               style={{
                 fontSize: 16,
-                color: '#666',
+                color: colors.muted,
                 marginBottom: 40,
                 textAlign: 'center',
-                lineHeight: 24,
+                lineHeight: spacing.lg,
               }}>
               Great job! You finished this study session.
             </Text>
@@ -183,37 +191,37 @@ export default function StudyScreen() {
             <View
               style={{
                 flexDirection: 'row',
-                gap: 16,
+                gap: spacing.md,
                 width: '100%',
                 marginBottom: 40,
               }}>
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#fff',
-                  borderRadius: 20,
-                  paddingVertical: 24,
-                  paddingHorizontal: 16,
+                  backgroundColor: colors.card,
+                  borderRadius: radius.xl,
+                  paddingVertical: spacing.lg,
+                  paddingHorizontal: spacing.md,
                   alignItems: 'center',
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.08,
-                  shadowRadius: 12,
+                  shadowRadius: radius.md,
                   elevation: 4,
                 }}>
                 <Text
                   style={{
                     fontSize: 32,
                     fontWeight: '700',
-                    color: '#007AFF',
-                    marginBottom: 8,
+                    color: colors.primary,
+                    marginBottom: spacing.sm,
                   }}>
                   {goodCount}
                 </Text>
                 <Text
                   style={{
                     fontSize: 13,
-                    color: '#666',
+                    color: colors.muted,
                     fontWeight: '600',
                     textAlign: 'center',
                   }}>
@@ -223,15 +231,15 @@ export default function StudyScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#fff',
-                  borderRadius: 20,
-                  paddingVertical: 24,
-                  paddingHorizontal: 16,
+                  backgroundColor: colors.card,
+                  borderRadius: radius.xl,
+                  paddingVertical: spacing.lg,
+                  paddingHorizontal: spacing.md,
                   alignItems: 'center',
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.08,
-                  shadowRadius: 12,
+                  shadowRadius: radius.md,
                   elevation: 4,
                 }}>
                 <Text
@@ -239,14 +247,14 @@ export default function StudyScreen() {
                     fontSize: 32,
                     fontWeight: '700',
                     color: '#ff9500',
-                    marginBottom: 8,
+                    marginBottom: spacing.sm,
                   }}>
                   {againCount}
                 </Text>
                 <Text
                   style={{
                     fontSize: 13,
-                    color: '#666',
+                    color: colors.muted,
                     fontWeight: '600',
                     textAlign: 'center',
                   }}>
@@ -256,30 +264,30 @@ export default function StudyScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#fff',
-                  borderRadius: 20,
-                  paddingVertical: 24,
-                  paddingHorizontal: 16,
+                  backgroundColor: colors.card,
+                  borderRadius: radius.xl,
+                  paddingVertical: spacing.lg,
+                  paddingHorizontal: spacing.md,
                   alignItems: 'center',
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.08,
-                  shadowRadius: 12,
+                  shadowRadius: radius.md,
                   elevation: 4,
                 }}>
                 <Text
                   style={{
                     fontSize: 32,
                     fontWeight: '700',
-                    color: '#34c759',
-                    marginBottom: 8,
+                    color: colors.success,
+                    marginBottom: spacing.sm,
                   }}>
                   {accuracyPercent}%
                 </Text>
                 <Text
                   style={{
                     fontSize: 13,
-                    color: '#666',
+                    color: colors.muted,
                     fontWeight: '600',
                     textAlign: 'center',
                   }}>
@@ -292,20 +300,20 @@ export default function StudyScreen() {
               <Pressable
                 onPress={handleRestart}
                 style={({ pressed }) => ({
-                  backgroundColor: '#007AFF',
+                  backgroundColor: colors.primary,
                   paddingVertical: 18,
-                  borderRadius: 16,
+                  borderRadius: radius.lg,
                   alignItems: 'center',
                   opacity: pressed ? 0.85 : 1,
-                  shadowColor: '#007AFF',
+                  shadowColor: colors.primary,
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.25,
-                  shadowRadius: 8,
+                  shadowRadius: spacing.sm,
                   elevation: 4,
                 })}>
                 <Text
                   style={{
-                    color: '#fff',
+                    color: colors.card,
                     fontSize: 16,
                     fontWeight: '600',
                   }}>
@@ -315,9 +323,9 @@ export default function StudyScreen() {
               <Pressable
                 onPress={() => router.replace('/')}
                 style={({ pressed }) => ({
-                  backgroundColor: '#fff',
+                  backgroundColor: colors.card,
                   paddingVertical: 18,
-                  borderRadius: 16,
+                  borderRadius: radius.lg,
                   alignItems: 'center',
                   opacity: pressed ? 0.85 : 1,
                   shadowColor: '#000',
@@ -330,7 +338,7 @@ export default function StudyScreen() {
                   style={{
                     fontSize: 16,
                     fontWeight: '600',
-                    color: '#1a1a1a',
+                    color: colors.text,
                   }}>
                   Back Home
                 </Text>
@@ -342,16 +350,16 @@ export default function StudyScreen() {
         <ContentContainer
           style={{
             flex: 1,
-            paddingHorizontal: 24,
-            paddingBottom: 24,
+            paddingHorizontal: spacing.lg,
+            paddingBottom: spacing.lg,
           }}>
           <Text
             style={{
               fontSize: 22,
               fontWeight: '700',
-              color: '#1a1a1a',
+              color: colors.text,
               textAlign: 'center',
-              marginBottom: 24,
+              marginBottom: spacing.lg,
             }}>
             📚 Study Session
           </Text>
@@ -367,9 +375,9 @@ export default function StudyScreen() {
             style={{
               fontSize: 18,
               fontWeight: '700',
-              color: '#007AFF',
+              color: colors.primary,
               textAlign: 'center',
-              marginBottom: 16,
+              marginBottom: spacing.md,
             }}>
             {progressPercent}%
           </Text>
@@ -377,9 +385,9 @@ export default function StudyScreen() {
           <Text
             style={{
               fontSize: 14,
-              color: '#666',
+              color: colors.muted,
               textAlign: 'center',
-              marginBottom: 16,
+              marginBottom: spacing.md,
             }}>
             {cardsRemaining === 0
               ? 'Last card'
@@ -390,16 +398,16 @@ export default function StudyScreen() {
             style={{
               alignSelf: 'center',
               backgroundColor: '#eef4ff',
-              borderRadius: 20,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              marginBottom: 32,
+              borderRadius: radius.xl,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.sm,
+              marginBottom: spacing.xl,
             }}>
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: '600',
-                color: '#007AFF',
+                color: colors.primary,
               }}>
               {currentCard.deck}
             </Text>
@@ -410,7 +418,7 @@ export default function StudyScreen() {
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: 32,
+              marginBottom: spacing.xl,
             }}>
             <Flashcard
               key={currentCard.id}
@@ -422,14 +430,14 @@ export default function StudyScreen() {
             />
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 16 }}>
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <Pressable
               onPress={handleAgain}
               style={{
                 flex: 1,
                 backgroundColor: '#e5e5e5',
-                borderRadius: 12,
-                paddingVertical: 16,
+                borderRadius: radius.md,
+                paddingVertical: spacing.md,
                 alignItems: 'center',
               }}>
               <Text
@@ -444,16 +452,16 @@ export default function StudyScreen() {
               onPress={handleGood}
               style={{
                 flex: 1,
-                backgroundColor: '#007AFF',
-                borderRadius: 12,
-                paddingVertical: 16,
+                backgroundColor: colors.primary,
+                borderRadius: radius.md,
+                paddingVertical: spacing.md,
                 alignItems: 'center',
               }}>
               <Text
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#fff',
+                  color: colors.card,
                 }}>
                 Good
               </Text>
