@@ -10,6 +10,7 @@ export default function HomeScreen() {
   const { cards, dailyProgress, dailyGoal, currentStreak } = useCards();
 
   const totalCards = cards.length;
+  const learnedCount = cards.filter((card) => card.learned).length;
   const favorites = 0;
   const deckCount = new Set(cards.map((card) => card.deck)).size;
   const reviewedToday = 0;
@@ -165,6 +166,37 @@ export default function HomeScreen() {
                   fontWeight: '500',
                 }}>
                 Decks
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.card,
+                borderRadius: radius.lg,
+                padding: spacing.md,
+                alignItems: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: spacing.sm,
+                elevation: 3,
+              }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: 'bold',
+                  color: '#5856d6',
+                  marginBottom: 4,
+                }}>
+                {learnedCount}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.muted,
+                  fontWeight: '500',
+                }}>
+                Learned
               </Text>
             </View>
           </View>

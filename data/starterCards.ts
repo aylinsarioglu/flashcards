@@ -9,6 +9,7 @@ export const starterCards: Card[] = [
     exampleTranslation: 'Bir karar vermen gerekiyor.',
     category: 'Collocations',
     deck: 'Collocations',
+    learned: false,
   },
   {
     id: '2',
@@ -18,5 +19,6 @@ export const starterCards: Card[] = [
     exampleTranslation: 'Yaptıklarının sorumluluğunu al.',
     category: 'Collocations',
     deck: 'Collocations',
+    learned: false,
   },
 ];

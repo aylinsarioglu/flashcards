@@ -6,4 +6,5 @@ export type Card = {
   exampleTranslation?: string;
   category: string;
   deck: string;
+  learned: boolean;
 };

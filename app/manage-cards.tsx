@@ -110,6 +110,16 @@ export default function ManageCardsScreen() {
             {item.back}
           </Text>
 
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: item.learned ? colors.success : colors.muted,
+              marginBottom: 20,
+            }}>
+            {item.learned ? '✅ Learned' : '⏳ Learning'}
+          </Text>
+
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Pressable
               onPress={() => router.push(`/edit-card?id=${item.id}`)}

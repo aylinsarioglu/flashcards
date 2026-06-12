@@ -15,7 +15,7 @@ export default function StudyScreen() {
   const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const deck = Array.isArray(params.deck) ? params.deck[0] : params.deck;
 
-  const { cards, incrementCardsReviewedToday } = useCards();
+  const { cards, setCards, incrementCardsReviewedToday } = useCards();
 
   const filteredStudyCards = useMemo(() => {
     let result =
@@ -43,6 +43,12 @@ export default function StudyScreen() {
     {},
   );
 
+  const studySessionKey = useMemo(
+    () =>
+      `${mode ?? ''}|${deck ?? ''}|${filteredStudyCards.map((card) => card.id).join(',')}`,
+    [mode, deck, filteredStudyCards],
+  );
+
   useEffect(() => {
     setStudyQueue(filteredStudyCards);
     setCurrentIndex(0);
@@ -50,7 +56,7 @@ export default function StudyScreen() {
     setGoodCount(0);
     setAgainCount(0);
     setFlipResetKeys({});
-  }, [filteredStudyCards]);
+  }, [studySessionKey, filteredStudyCards]);
 
   const currentCard = studyQueue[currentIndex];
   const progressPercent =
@@ -67,6 +73,14 @@ export default function StudyScreen() {
   function handleGood() {
     incrementCardsReviewedToday();
     setGoodCount((prev) => prev + 1);
+
+    if (currentCard) {
+      setCards(
+        cards.map((card) =>
+          card.id === currentCard.id ? { ...card, learned: true } : card,
+        ),
+      );
+    }
 
     if (currentIndex === studyQueue.length - 1) {
       setCompleted(true);

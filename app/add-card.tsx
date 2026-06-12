@@ -27,6 +27,7 @@ export default function AddCardScreen() {
       back,
       category: deck,
       deck,
+      learned: false,
       ...(example ? { example } : {}),
       ...(exampleTranslation ? { exampleTranslation } : {}),
     };
