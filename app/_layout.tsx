@@ -1,15 +1,18 @@
 import { Stack } from 'expo-router';
 
 import { CardsProvider } from '../storage/CardsContext';
+import { ThemeProvider } from '../storage/ThemeContext';
 
 export default function RootLayout() {
   return (
-    <CardsProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </CardsProvider>
+    <ThemeProvider>
+      <CardsProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
+      </CardsProvider>
+    </ThemeProvider>
   );
 }

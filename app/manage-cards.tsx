@@ -3,12 +3,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
-import { colors, radius, spacing } from '../constants/theme';
+import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
+import { useTheme } from '../storage/ThemeContext';
 import type { Card } from '../types/card';
 
 export default function ManageCardsScreen() {
   const { cards, setCards } = useCards();
+  const { isDark } = useTheme();
+  const colors = isDark ? darkTheme : lightTheme;
 
   function handleDelete(id: string) {
     setCards(cards.filter((card) => card.id !== id));
@@ -143,7 +146,7 @@ export default function ManageCardsScreen() {
               onPress={() => handleDelete(item.id)}
               style={({ pressed }) => ({
                 flex: 1,
-                backgroundColor: pressed ? '#d70015' : '#ff3b30',
+                backgroundColor: pressed ? '#d70015' : colors.danger,
                 paddingVertical: 12,
                 borderRadius: radius.md,
                 alignItems: 'center',

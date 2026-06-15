@@ -4,12 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
-import { colors, radius, spacing } from '../constants/theme';
+import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
+import { useTheme } from '../storage/ThemeContext';
 import type { Card } from '../types/card';
 
 export default function AddCardScreen() {
   const { cards, setCards } = useCards();
+  const { isDark } = useTheme();
+  const colors = isDark ? darkTheme : lightTheme;
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [example, setExample] = useState('');
@@ -45,13 +48,14 @@ export default function AddCardScreen() {
 
   const inputStyle = {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: isDark ? '#333333' : '#ddd',
     borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: spacing.md,
     fontSize: 16,
     backgroundColor: colors.card,
+    color: colors.text,
   };
 
   return (
@@ -68,6 +72,7 @@ export default function AddCardScreen() {
             fontSize: 14,
             fontWeight: '600',
             marginBottom: 6,
+            color: colors.text,
           }}>
           Front
         </Text>
@@ -75,6 +80,7 @@ export default function AddCardScreen() {
           value={front}
           onChangeText={setFront}
           placeholder="Enter front text"
+          placeholderTextColor={colors.muted}
           style={inputStyle}
         />
         <Text
@@ -82,6 +88,7 @@ export default function AddCardScreen() {
             fontSize: 14,
             fontWeight: '600',
             marginBottom: 6,
+            color: colors.text,
           }}>
           Back
         </Text>
@@ -89,6 +96,7 @@ export default function AddCardScreen() {
           value={back}
           onChangeText={setBack}
           placeholder="Enter back text"
+          placeholderTextColor={colors.muted}
           style={inputStyle}
         />
         <Text
@@ -96,6 +104,7 @@ export default function AddCardScreen() {
             fontSize: 14,
             fontWeight: '600',
             marginBottom: 6,
+            color: colors.text,
           }}>
           Example (optional)
         </Text>
@@ -103,6 +112,7 @@ export default function AddCardScreen() {
           value={example}
           onChangeText={setExample}
           placeholder="Enter example sentence"
+          placeholderTextColor={colors.muted}
           style={inputStyle}
         />
         <Text
@@ -110,6 +120,7 @@ export default function AddCardScreen() {
             fontSize: 14,
             fontWeight: '600',
             marginBottom: 6,
+            color: colors.text,
           }}>
           Example Translation (optional)
         </Text>
@@ -117,6 +128,7 @@ export default function AddCardScreen() {
           value={exampleTranslation}
           onChangeText={setExampleTranslation}
           placeholder="Enter example translation"
+          placeholderTextColor={colors.muted}
           style={inputStyle}
         />
         <Text
@@ -124,6 +136,7 @@ export default function AddCardScreen() {
             fontSize: 14,
             fontWeight: '600',
             marginBottom: 6,
+            color: colors.text,
           }}>
           Deck
         </Text>
@@ -131,6 +144,7 @@ export default function AddCardScreen() {
           value={deck}
           onChangeText={setDeck}
           placeholder="Deck Name"
+          placeholderTextColor={colors.muted}
           style={{
             ...inputStyle,
             marginBottom: spacing.lg,

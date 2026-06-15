@@ -6,8 +6,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import ContentContainer from '../components/ContentContainer';
 import Flashcard from '../components/Flashcard';
 import ProgressBar from '../components/ProgressBar';
-import { colors, radius, spacing } from '../constants/theme';
+import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
+import { useTheme } from '../storage/ThemeContext';
 import type { Card } from '../types/card';
 
 function filterStudyCards(
@@ -64,6 +65,8 @@ export default function StudyScreen() {
 
   const { cards, setCards, incrementCardsReviewedToday, completeStudySession } =
     useCards();
+  const { isDark } = useTheme();
+  const colors = isDark ? darkTheme : lightTheme;
 
   const filteredStudyCards = useMemo(
     () => filterStudyCards(cards, mode, deck),

@@ -3,12 +3,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
-import { colors, radius, spacing } from '../constants/theme';
+import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { ACHIEVEMENT_DEFINITIONS, useCards } from '../storage/CardsContext';
+import { useTheme } from '../storage/ThemeContext';
 
 export default function HomeScreen() {
   const { cards, dailyProgress, dailyGoal, currentStreak, achievements } =
     useCards();
+  const { isDark, toggleTheme } = useTheme();
+  const colors = isDark ? darkTheme : lightTheme;
 
   const totalCards = cards.length;
   const learnedCount = cards.filter((card) => card.learned).length;
@@ -64,6 +67,36 @@ export default function HomeScreen() {
         }}
         showsVerticalScrollIndicator={false}>
         <ContentContainer>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              marginBottom: spacing.sm,
+            }}>
+            <Pressable
+              onPress={toggleTheme}
+              style={({ pressed }) => ({
+                paddingVertical: spacing.sm,
+                paddingHorizontal: spacing.md,
+                borderRadius: radius.md,
+                backgroundColor: colors.card,
+                opacity: pressed ? 0.85 : 1,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: spacing.sm,
+                elevation: 2,
+              })}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: colors.text,
+                }}>
+                {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              </Text>
+            </Pressable>
+          </View>
           <Text
             style={{
               fontSize: 40,
