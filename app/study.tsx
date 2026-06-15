@@ -10,6 +10,53 @@ import { colors, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import type { Card } from '../types/card';
 
+function filterStudyCards(
+  cards: Card[],
+  mode?: string,
+  deck?: string,
+): Card[] {
+  let result = cards;
+
+  if (mode === 'favorites') {
+    result = result.filter(
+      (card) =>
+        (card as (typeof card & { favorite?: boolean })).favorite === true,
+    );
+  } else if (mode === 'learning') {
+    result = result.filter((card) => !card.learned);
+  }
+
+  if (deck) {
+    result = result.filter((card) => card.deck === deck);
+  }
+
+  return result;
+}
+
+function getEmptyStateDescription(mode?: string) {
+  if (mode === 'favorites') {
+    return 'No favorite cards yet.';
+  }
+
+  if (mode === 'learning') {
+    return 'All cards learned 🎉';
+  }
+
+  return 'No cards available.';
+}
+
+function getSessionTitle(mode?: string) {
+  if (mode === 'favorites') {
+    return '⭐ Favorites';
+  }
+
+  if (mode === 'learning') {
+    return '🧠 Learning Cards';
+  }
+
+  return '📚 Study Session';
+}
+
 export default function StudyScreen() {
   const params = useLocalSearchParams<{ mode?: string; deck?: string }>();
   const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
@@ -18,24 +65,13 @@ export default function StudyScreen() {
   const { cards, setCards, incrementCardsReviewedToday, completeStudySession } =
     useCards();
 
-  const filteredStudyCards = useMemo(() => {
-    let result =
-      mode === 'favorites'
-        ? cards.filter(
-            (card) =>
-              (card as (typeof card & { favorite?: boolean })).favorite ===
-              true,
-          )
-        : cards;
-
-    if (deck) {
-      result = result.filter((card) => card.deck === deck);
-    }
-
-    return result;
-  }, [cards, mode, deck]);
+  const filteredStudyCards = useMemo(
+    () => filterStudyCards(cards, mode, deck),
+    [cards, mode, deck],
+  );
 
   const [studyQueue, setStudyQueue] = useState<Card[]>(filteredStudyCards);
+  const [sessionTotal, setSessionTotal] = useState(filteredStudyCards.length);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [goodCount, setGoodCount] = useState(0);
@@ -52,6 +88,7 @@ export default function StudyScreen() {
 
   useEffect(() => {
     setStudyQueue(filteredStudyCards);
+    setSessionTotal(filteredStudyCards.length);
     setCurrentIndex(0);
     setCompleted(false);
     setGoodCount(0);
@@ -65,7 +102,9 @@ export default function StudyScreen() {
       return null;
     }
 
-    const deckCards = cards.filter((card) => card.deck === currentCard.deck);
+    const deckCards = filteredStudyCards.filter(
+      (card) => card.deck === currentCard.deck,
+    );
     const deckLearned = deckCards.filter((card) => card.learned).length;
 
     return {
@@ -73,7 +112,8 @@ export default function StudyScreen() {
       total: deckCards.length,
       learned: deckLearned,
     };
-  }, [cards, currentCard]);
+  }, [filteredStudyCards, currentCard]);
+
   const progressPercent =
     studyQueue.length > 0
       ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
@@ -122,9 +162,10 @@ export default function StudyScreen() {
     setAgainCount(0);
     setFlipResetKeys({});
     setStudyQueue(filteredStudyCards);
+    setSessionTotal(filteredStudyCards.length);
   }
 
-  if (studyQueue.length === 0) {
+  if (filteredStudyCards.length === 0) {
     return (
       <SafeAreaView
         style={{
@@ -136,20 +177,13 @@ export default function StudyScreen() {
         <ContentContainer style={{ alignItems: 'center' }}>
           <Text
             style={{
-              fontSize: 72,
-              marginBottom: spacing.lg,
-            }}>
-            📚
-          </Text>
-          <Text
-            style={{
               fontSize: 32,
               fontWeight: 'bold',
               marginBottom: 12,
               color: colors.text,
               textAlign: 'center',
             }}>
-            No Cards Yet
+            No Cards Found
           </Text>
           <Text
             style={{
@@ -159,10 +193,10 @@ export default function StudyScreen() {
               textAlign: 'center',
               lineHeight: spacing.lg,
             }}>
-            Create your first flashcard to start learning.
+            {getEmptyStateDescription(mode)}
           </Text>
           <Pressable
-            onPress={() => router.replace('/add-card')}
+            onPress={() => router.replace('/')}
             style={({ pressed }) => ({
               width: '100%',
               backgroundColor: colors.primary,
@@ -182,7 +216,7 @@ export default function StudyScreen() {
                 fontSize: 16,
                 fontWeight: '600',
               }}>
-              Create Card
+              Back Home
             </Text>
           </Pressable>
         </ContentContainer>
@@ -243,7 +277,8 @@ export default function StudyScreen() {
                 textAlign: 'center',
                 lineHeight: spacing.lg,
               }}>
-              Great job! You finished this study session.
+              Great job! You finished {sessionTotal}{' '}
+              {sessionTotal === 1 ? 'card' : 'cards'} in this session.
             </Text>
 
             <View
@@ -419,7 +454,7 @@ export default function StudyScreen() {
               textAlign: 'center',
               marginBottom: spacing.lg,
             }}>
-            📚 Study Session
+            {getSessionTitle(mode)}
           </Text>
 
           <View style={{ marginBottom: 12 }}>
@@ -447,9 +482,8 @@ export default function StudyScreen() {
               textAlign: 'center',
               marginBottom: spacing.md,
             }}>
-            {cardsRemaining === 0
-              ? 'Last card'
-              : `${cardsRemaining} cards remaining`}
+            Card {currentIndex + 1} of {studyQueue.length}
+            {cardsRemaining > 0 ? ` · ${cardsRemaining} remaining` : ''}
           </Text>
 
           <View

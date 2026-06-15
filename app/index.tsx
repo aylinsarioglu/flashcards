@@ -490,53 +490,105 @@ export default function HomeScreen() {
             </View>
           )}
 
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: radius.lg,
+              padding: 20,
+              marginBottom: 12,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: spacing.sm,
+              elevation: 3,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: spacing.md,
+              }}>
+              Study Modes
+            </Text>
+            <View style={{ gap: 12 }}>
+              <Pressable
+                onPress={() => router.push('/study?mode=all')}
+                style={({ pressed }) => ({
+                  backgroundColor: colors.primary,
+                  paddingVertical: spacing.md,
+                  borderRadius: radius.lg,
+                  alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: spacing.sm,
+                  elevation: 4,
+                })}>
+                <Text
+                  style={{
+                    color: colors.card,
+                    fontSize: 16,
+                    fontWeight: '600',
+                  }}>
+                  📚 All Cards
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/study?mode=favorites')}
+                style={({ pressed }) => ({
+                  backgroundColor: colors.card,
+                  paddingVertical: spacing.md,
+                  borderRadius: radius.lg,
+                  alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  borderWidth: 1,
+                  borderColor: '#e5e5e5',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 6,
+                  elevation: 2,
+                })}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: colors.text,
+                  }}>
+                  ⭐ Favorites
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/study?mode=learning')}
+                style={({ pressed }) => ({
+                  backgroundColor: colors.card,
+                  paddingVertical: spacing.md,
+                  borderRadius: radius.lg,
+                  alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  borderWidth: 1,
+                  borderColor: '#e5e5e5',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 6,
+                  elevation: 2,
+                })}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: colors.text,
+                  }}>
+                  🧠 Learning Cards
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
           <View style={{ gap: 12 }}>
-            <Pressable
-              onPress={() => router.push('/study')}
-              style={({ pressed }) => ({
-                backgroundColor: colors.primary,
-                paddingVertical: spacing.md,
-                borderRadius: radius.lg,
-                alignItems: 'center',
-                opacity: pressed ? 0.85 : 1,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: spacing.sm,
-                elevation: 4,
-              })}>
-              <Text
-                style={{
-                  color: colors.card,
-                  fontSize: 16,
-                  fontWeight: '600',
-                }}>
-                ▶ Start Learning
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/study?mode=favorites')}
-              style={({ pressed }) => ({
-                backgroundColor: colors.card,
-                paddingVertical: spacing.md,
-                borderRadius: radius.lg,
-                alignItems: 'center',
-                opacity: pressed ? 0.85 : 1,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 6,
-                elevation: 2,
-              })}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: colors.text,
-                }}>
-                Review Favorites
-              </Text>
-            </Pressable>
             <Pressable
               onPress={() => router.push('/add-card')}
               style={({ pressed }) => ({
