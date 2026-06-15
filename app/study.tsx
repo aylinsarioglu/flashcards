@@ -15,7 +15,8 @@ export default function StudyScreen() {
   const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const deck = Array.isArray(params.deck) ? params.deck[0] : params.deck;
 
-  const { cards, setCards, incrementCardsReviewedToday } = useCards();
+  const { cards, setCards, incrementCardsReviewedToday, completeStudySession } =
+    useCards();
 
   const filteredStudyCards = useMemo(() => {
     let result =
@@ -59,6 +60,20 @@ export default function StudyScreen() {
   }, [studySessionKey, filteredStudyCards]);
 
   const currentCard = studyQueue[currentIndex];
+  const deckProgress = useMemo(() => {
+    if (!currentCard) {
+      return null;
+    }
+
+    const deckCards = cards.filter((card) => card.deck === currentCard.deck);
+    const deckLearned = deckCards.filter((card) => card.learned).length;
+
+    return {
+      name: currentCard.deck,
+      total: deckCards.length,
+      learned: deckLearned,
+    };
+  }, [cards, currentCard]);
   const progressPercent =
     studyQueue.length > 0
       ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
@@ -83,6 +98,7 @@ export default function StudyScreen() {
     }
 
     if (currentIndex === studyQueue.length - 1) {
+      completeStudySession();
       setCompleted(true);
     } else {
       setCurrentIndex((prev) => prev + 1);
@@ -439,19 +455,25 @@ export default function StudyScreen() {
           <View
             style={{
               alignSelf: 'center',
-              backgroundColor: '#eef4ff',
-              borderRadius: radius.xl,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.sm,
+              alignItems: 'center',
               marginBottom: spacing.xl,
             }}>
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: '600',
-                color: colors.primary,
+                fontSize: 18,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: 4,
               }}>
-              {currentCard.deck}
+              {deckProgress?.name}
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.muted,
+                fontWeight: '500',
+              }}>
+              {deckProgress?.learned} / {deckProgress?.total} learned
             </Text>
           </View>
 

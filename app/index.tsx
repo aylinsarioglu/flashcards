@@ -4,10 +4,11 @@ import { router } from 'expo-router';
 
 import ContentContainer from '../components/ContentContainer';
 import { colors, radius, spacing } from '../constants/theme';
-import { useCards } from '../storage/CardsContext';
+import { ACHIEVEMENT_DEFINITIONS, useCards } from '../storage/CardsContext';
 
 export default function HomeScreen() {
-  const { cards, dailyProgress, dailyGoal, currentStreak } = useCards();
+  const { cards, dailyProgress, dailyGoal, currentStreak, achievements } =
+    useCards();
 
   const totalCards = cards.length;
   const learnedCount = cards.filter((card) => card.learned).length;
@@ -24,14 +25,28 @@ export default function HomeScreen() {
         )
       : 0;
 
-  const deckGroups = cards.reduce<Record<string, number>>((groups, card) => {
-    groups[card.deck] = (groups[card.deck] ?? 0) + 1;
+  const deckGroups = cards.reduce<
+    Record<string, { total: number; learned: number }>
+  >((groups, card) => {
+    if (!groups[card.deck]) {
+      groups[card.deck] = { total: 0, learned: 0 };
+    }
+
+    groups[card.deck].total += 1;
+
+    if (card.learned) {
+      groups[card.deck].learned += 1;
+    }
+
     return groups;
   }, {});
 
-  const deckList = Object.entries(deckGroups).map(([name, count]) => ({
+  const deckList = Object.entries(deckGroups).map(([name, stats]) => ({
     name,
-    count,
+    total: stats.total,
+    learned: stats.learned,
+    progressPercent:
+      stats.total > 0 ? Math.round((stats.learned / stats.total) * 100) : 0,
   }));
 
   return (
@@ -249,6 +264,61 @@ export default function HomeScreen() {
                 fontSize: 16,
                 fontWeight: '700',
                 color: colors.text,
+                marginBottom: spacing.md,
+              }}>
+              Achievements
+            </Text>
+            <View style={{ gap: 12 }}>
+              {ACHIEVEMENT_DEFINITIONS.map((achievement) => {
+                const unlocked = achievements[achievement.id];
+
+                return (
+                  <View
+                    key={achievement.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: unlocked ? colors.text : colors.muted,
+                      }}>
+                      {achievement.title}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: unlocked ? colors.success : colors.muted,
+                      }}>
+                      {unlocked ? '✅' : '🔒'}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: radius.lg,
+              padding: 20,
+              marginBottom: 40,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: spacing.sm,
+              elevation: 3,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text,
                 marginBottom: 12,
               }}>
               Today's Challenge
@@ -356,7 +426,7 @@ export default function HomeScreen() {
                 My Decks
               </Text>
               <View style={{ gap: 12 }}>
-                {deckList.map(({ name, count }) => (
+                {deckList.map(({ name, total, learned, progressPercent }) => (
                   <Pressable
                     key={name}
                     onPress={() => router.push(`/study?deck=${name}`)}
@@ -378,15 +448,41 @@ export default function HomeScreen() {
                         color: colors.text,
                         marginBottom: 4,
                       }}>
-                      {name}
+                      📚 {name}
                     </Text>
                     <Text
                       style={{
                         fontSize: 14,
                         color: colors.muted,
                         fontWeight: '500',
+                        marginBottom: spacing.sm,
                       }}>
-                      {count} cards
+                      {learned} / {total} learned
+                    </Text>
+                    <View
+                      style={{
+                        height: 10,
+                        backgroundColor: '#e5e5e5',
+                        borderRadius: 5,
+                        overflow: 'hidden',
+                        marginBottom: spacing.sm,
+                      }}>
+                      <View
+                        style={{
+                          width: `${progressPercent}%`,
+                          height: '100%',
+                          backgroundColor: colors.primary,
+                          borderRadius: 5,
+                        }}
+                      />
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: colors.muted,
+                        fontWeight: '500',
+                      }}>
+                      {progressPercent}%
                     </Text>
                   </Pressable>
                 ))}

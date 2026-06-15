@@ -10,11 +10,24 @@ import {
 
 import { starterCards } from '../data/starterCards';
 import type { Card } from '../types/card';
+import {
+  ACHIEVEMENT_DEFINITIONS,
+  type Achievements,
+  DEFAULT_ACHIEVEMENTS,
+} from '../types/achievements';
+import {
+  computeAchievements,
+  hasAchievementChanges,
+} from './achievementsStorage';
 import { loadCards, saveCards } from './cardsStorage';
 
 const DAILY_PROGRESS_KEY = 'FLASHCARDS_DAILY_PROGRESS';
 const STREAK_KEY = 'FLASHCARDS_STREAK';
+const ACHIEVEMENTS_KEY = 'FLASHCARDS_ACHIEVEMENTS';
 const DAILY_GOAL = 10;
+
+export type { Achievements };
+export { ACHIEVEMENT_DEFINITIONS };
 
 export type DailyProgress = {
   cardsReviewedToday: number;
@@ -36,7 +49,9 @@ type CardsContextValue = {
   dailyProgress: DailyProgress;
   dailyGoal: number;
   currentStreak: number;
+  achievements: Achievements;
   incrementCardsReviewedToday: () => void;
+  completeStudySession: () => void;
 };
 
 const CardsContext = createContext<CardsContextValue | null>(null);
@@ -92,13 +107,18 @@ export function CardsProvider({ children }: CardsProviderProps) {
     cardsReviewedToday: 0,
   });
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [achievements, setAchievements] = useState<Achievements>(
+    DEFAULT_ACHIEVEMENTS,
+  );
   const [isProgressLoaded, setIsProgressLoaded] = useState(false);
   const [isStreakLoaded, setIsStreakLoaded] = useState(false);
+  const [isAchievementsLoaded, setIsAchievementsLoaded] = useState(false);
   const progressDateRef = useRef(getTodayKey());
   const streakStateRef = useRef<StoredStreak>({
     currentStreak: 0,
     lastStudyDate: null,
   });
+  const initialCardCountRef = useRef<number | null>(null);
 
   useEffect(() => {
     loadCards().then((stored) => {
@@ -132,6 +152,42 @@ export function CardsProvider({ children }: CardsProviderProps) {
   }, []);
 
   useEffect(() => {
+    AsyncStorage.getItem(ACHIEVEMENTS_KEY).then((data) => {
+      const stored = data ? (JSON.parse(data) as Achievements) : null;
+
+      setAchievements({
+        ...DEFAULT_ACHIEVEMENTS,
+        ...stored,
+      });
+      setIsAchievementsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded || initialCardCountRef.current !== null) {
+      return;
+    }
+
+    initialCardCountRef.current = cards.length;
+  }, [isLoaded, cards.length]);
+
+  useEffect(() => {
+    if (!isLoaded || !isAchievementsLoaded || initialCardCountRef.current === null) {
+      return;
+    }
+
+    setAchievements((current) => {
+      const next = computeAchievements(
+        cards,
+        current,
+        initialCardCountRef.current ?? cards.length,
+      );
+
+      return hasAchievementChanges(current, next) ? next : current;
+    });
+  }, [cards, isLoaded, isAchievementsLoaded]);
+
+  useEffect(() => {
     if (!isLoaded) {
       return;
     }
@@ -163,7 +219,15 @@ export function CardsProvider({ children }: CardsProviderProps) {
     AsyncStorage.setItem(STREAK_KEY, JSON.stringify(streakStateRef.current));
   }, [currentStreak, isStreakLoaded]);
 
-  function recordStudyDay() {
+  useEffect(() => {
+    if (!isAchievementsLoaded) {
+      return;
+    }
+
+    AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+  }, [achievements, isAchievementsLoaded]);
+
+  function completeStudySession() {
     const today = getTodayKey();
 
     if (streakStateRef.current.lastStudyDate === today) {
@@ -197,8 +261,6 @@ export function CardsProvider({ children }: CardsProviderProps) {
         cardsReviewedToday: currentCount + 1,
       };
     });
-
-    recordStudyDay();
   }
 
   return (
@@ -209,7 +271,9 @@ export function CardsProvider({ children }: CardsProviderProps) {
         dailyProgress,
         dailyGoal: DAILY_GOAL,
         currentStreak,
+        achievements,
         incrementCardsReviewedToday,
+        completeStudySession,
       }}>
       {children}
     </CardsContext.Provider>
