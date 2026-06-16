@@ -1,8 +1,7 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
-import ContentContainer from '../components/ContentContainer';
+import ScreenContainer from '../components/ScreenContainer';
 import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { ACHIEVEMENT_DEFINITIONS, useCards } from '../storage/CardsContext';
 import { useTheme } from '../storage/ThemeContext';
@@ -53,9 +52,8 @@ export default function HomeScreen() {
   }));
 
   return (
-    <SafeAreaView
+    <ScreenContainer
       style={{
-        flex: 1,
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
       }}>
@@ -66,7 +64,6 @@ export default function HomeScreen() {
           paddingBottom: spacing.xl,
         }}
         showsVerticalScrollIndicator={false}>
-        <ContentContainer>
           <View
             style={{
               flexDirection: 'row',
@@ -669,8 +666,7 @@ export default function HomeScreen() {
               </Text>
             </Pressable>
           </View>
-        </ContentContainer>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }

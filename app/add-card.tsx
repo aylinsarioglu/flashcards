@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { Pressable, Text, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, type ReactNode } from 'react';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
-import ContentContainer from '../components/ContentContainer';
+import ScreenContainer from '../components/ScreenContainer';
 import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import { useTheme } from '../storage/ThemeContext';
@@ -46,117 +45,140 @@ export default function AddCardScreen() {
     router.replace('/');
   }
 
+  const labelStyle = {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: colors.muted,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+  };
+
   const inputStyle = {
     borderWidth: 1,
-    borderColor: isDark ? '#333333' : '#ddd',
-    borderRadius: radius.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: spacing.md,
+    borderColor: isDark ? '#333333' : '#e0e0e0',
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
     fontSize: 16,
     backgroundColor: colors.card,
     color: colors.text,
   };
 
+  function Field({
+    label,
+    children,
+  }: {
+    label: string;
+    children: ReactNode;
+  }) {
+    return (
+      <View style={{ marginBottom: spacing.lg }}>
+        <Text style={labelStyle}>{label}</Text>
+        {children}
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView
+    <ScreenContainer
       style={{
-        flex: 1,
-        justifyContent: 'center',
         backgroundColor: colors.background,
         paddingHorizontal: spacing.lg,
       }}>
-      <ContentContainer>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingVertical: spacing.xl,
+          paddingBottom: spacing.xl,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         <Text
           style={{
-            fontSize: 14,
-            fontWeight: '600',
-            marginBottom: 6,
+            fontSize: 32,
+            fontWeight: '700',
             color: colors.text,
+            marginBottom: spacing.sm,
           }}>
-          Front
+          Add Card
         </Text>
-        <TextInput
-          value={front}
-          onChangeText={setFront}
-          placeholder="Enter front text"
-          placeholderTextColor={colors.muted}
-          style={inputStyle}
-        />
         <Text
           style={{
-            fontSize: 14,
-            fontWeight: '600',
-            marginBottom: 6,
-            color: colors.text,
+            fontSize: 16,
+            color: colors.muted,
+            marginBottom: spacing.xl,
+            lineHeight: spacing.lg,
           }}>
-          Back
+          Create a new flashcard for your deck.
         </Text>
-        <TextInput
-          value={back}
-          onChangeText={setBack}
-          placeholder="Enter back text"
-          placeholderTextColor={colors.muted}
-          style={inputStyle}
-        />
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '600',
-            marginBottom: 6,
-            color: colors.text,
-          }}>
-          Example (optional)
-        </Text>
-        <TextInput
-          value={example}
-          onChangeText={setExample}
-          placeholder="Enter example sentence"
-          placeholderTextColor={colors.muted}
-          style={inputStyle}
-        />
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '600',
-            marginBottom: 6,
-            color: colors.text,
-          }}>
-          Example Translation (optional)
-        </Text>
-        <TextInput
-          value={exampleTranslation}
-          onChangeText={setExampleTranslation}
-          placeholder="Enter example translation"
-          placeholderTextColor={colors.muted}
-          style={inputStyle}
-        />
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '600',
-            marginBottom: 6,
-            color: colors.text,
-          }}>
-          Deck
-        </Text>
-        <TextInput
-          value={deck}
-          onChangeText={setDeck}
-          placeholder="Deck Name"
-          placeholderTextColor={colors.muted}
-          style={{
-            ...inputStyle,
-            marginBottom: spacing.lg,
-          }}
-        />
+
+        <Field label="Front">
+          <TextInput
+            value={front}
+            onChangeText={setFront}
+            placeholder="e.g. make a decision"
+            placeholderTextColor={colors.muted}
+            style={inputStyle}
+          />
+        </Field>
+
+        <Field label="Back">
+          <TextInput
+            value={back}
+            onChangeText={setBack}
+            placeholder="e.g. to decide something"
+            placeholderTextColor={colors.muted}
+            style={inputStyle}
+          />
+        </Field>
+
+        <Field label="Example">
+          <TextInput
+            value={example}
+            onChangeText={setExample}
+            placeholder="e.g. She made a difficult decision."
+            placeholderTextColor={colors.muted}
+            style={inputStyle}
+            multiline
+          />
+        </Field>
+
+        <Field label="Example Translation">
+          <TextInput
+            value={exampleTranslation}
+            onChangeText={setExampleTranslation}
+            placeholder="e.g. Ella tomó una decisión difícil."
+            placeholderTextColor={colors.muted}
+            style={inputStyle}
+            multiline
+          />
+        </Field>
+
+        <Field label="Deck">
+          <TextInput
+            value={deck}
+            onChangeText={setDeck}
+            placeholder="e.g. Collocations"
+            placeholderTextColor={colors.muted}
+            style={inputStyle}
+          />
+        </Field>
+
         <Pressable
           onPress={handleAddCard}
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#0056b3' : colors.primary,
-            paddingVertical: 12,
-            borderRadius: radius.sm,
+            backgroundColor: colors.primary,
+            paddingVertical: 18,
+            borderRadius: radius.lg,
             alignItems: 'center',
+            marginTop: spacing.sm,
+            opacity: pressed ? 0.85 : 1,
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: spacing.sm,
+            elevation: 4,
           })}>
           <Text
             style={{
@@ -167,7 +189,7 @@ export default function AddCardScreen() {
             Add Card
           </Text>
         </Pressable>
-      </ContentContainer>
-    </SafeAreaView>
+      </ScrollView>
+    </ScreenContainer>
   );
 }

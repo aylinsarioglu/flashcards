@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
-import ContentContainer from '../components/ContentContainer';
 import Flashcard from '../components/Flashcard';
 import ProgressBar from '../components/ProgressBar';
+import ScreenContainer from '../components/ScreenContainer';
 import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import { useTheme } from '../storage/ThemeContext';
@@ -117,11 +116,6 @@ export default function StudyScreen() {
     };
   }, [filteredStudyCards, currentCard]);
 
-  const progressPercent =
-    studyQueue.length > 0
-      ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
-      : 0;
-  const cardsRemaining = studyQueue.length - (currentIndex + 1);
   const totalAnswers = goodCount + againCount;
   const accuracyPercent =
     totalAnswers === 0
@@ -170,14 +164,13 @@ export default function StudyScreen() {
 
   if (filteredStudyCards.length === 0) {
     return (
-      <SafeAreaView
+      <ScreenContainer
         style={{
-          flex: 1,
           justifyContent: 'center',
           backgroundColor: colors.background,
           paddingHorizontal: spacing.lg,
         }}>
-        <ContentContainer style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center' }}>
           <Text
             style={{
               fontSize: 32,
@@ -222,31 +215,16 @@ export default function StudyScreen() {
               Back Home
             </Text>
           </Pressable>
-        </ContentContainer>
-      </SafeAreaView>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <SafeAreaView
+    <ScreenContainer
       style={{
-        flex: 1,
         backgroundColor: colors.background,
       }}>
-      <ContentContainer
-        style={{ paddingHorizontal: spacing.lg, paddingVertical: 12 }}>
-        <Pressable onPress={() => router.replace('/')}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: colors.primary,
-            }}>
-            ← Back
-          </Text>
-        </Pressable>
-      </ContentContainer>
-
       {completed ? (
         <View
           style={{
@@ -254,7 +232,7 @@ export default function StudyScreen() {
             justifyContent: 'center',
             paddingHorizontal: spacing.lg,
           }}>
-          <ContentContainer style={{ alignItems: 'center' }}>
+          <View style={{ alignItems: 'center' }}>
             <Text
               style={{
                 fontSize: 88,
@@ -440,77 +418,59 @@ export default function StudyScreen() {
                 </Text>
               </Pressable>
             </View>
-          </ContentContainer>
+          </View>
         </View>
       ) : (
-        <ContentContainer
-          style={{
-            flex: 1,
-            paddingHorizontal: spacing.lg,
-            paddingBottom: spacing.lg,
-          }}>
-          <Text
+        <View style={{ flex: 1 }}>
+          <View
             style={{
-              fontSize: 22,
-              fontWeight: '700',
-              color: colors.text,
-              textAlign: 'center',
-              marginBottom: spacing.lg,
+              paddingHorizontal: spacing.lg,
+              paddingTop: spacing.sm,
+              paddingBottom: spacing.md,
             }}>
-            {getSessionTitle(mode)}
-          </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: spacing.md,
+              }}>
+              <Pressable onPress={() => router.replace('/')}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: colors.primary,
+                  }}>
+                  ← Back
+                </Text>
+              </Pressable>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: colors.muted,
+                }}>
+                {getSessionTitle(mode)}
+              </Text>
+            </View>
 
-          <View style={{ marginBottom: 12 }}>
             <ProgressBar
               current={currentIndex + 1}
               total={studyQueue.length}
             />
-          </View>
 
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '700',
-              color: colors.primary,
-              textAlign: 'center',
-              marginBottom: spacing.md,
-            }}>
-            {progressPercent}%
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              color: colors.muted,
-              textAlign: 'center',
-              marginBottom: spacing.md,
-            }}>
-            Card {currentIndex + 1} of {studyQueue.length}
-            {cardsRemaining > 0 ? ` · ${cardsRemaining} remaining` : ''}
-          </Text>
-
-          <View
-            style={{
-              alignSelf: 'center',
-              alignItems: 'center',
-              marginBottom: spacing.xl,
-            }}>
             <Text
               style={{
-                fontSize: 18,
-                fontWeight: '700',
-                color: colors.text,
-                marginBottom: 4,
-              }}>
-              {deckProgress?.name}
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
+                fontSize: 13,
                 color: colors.muted,
-                fontWeight: '500',
+                textAlign: 'center',
+                marginTop: spacing.sm,
               }}>
-              {deckProgress?.learned} / {deckProgress?.total} learned
+              Card {currentIndex + 1} of {studyQueue.length}
+              {deckProgress
+                ? ` · ${deckProgress.name} (${deckProgress.learned}/${deckProgress.total})`
+                : ''}
             </Text>
           </View>
 
@@ -519,7 +479,7 @@ export default function StudyScreen() {
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: spacing.xl,
+              paddingHorizontal: spacing.lg,
             }}>
             <Flashcard
               key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
@@ -531,33 +491,48 @@ export default function StudyScreen() {
             />
           </View>
 
-          <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: spacing.md,
+              paddingHorizontal: spacing.lg,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.lg,
+            }}>
             <Pressable
               onPress={handleAgain}
-              style={{
+              style={({ pressed }) => ({
                 flex: 1,
-                backgroundColor: '#e5e5e5',
-                borderRadius: radius.md,
-                paddingVertical: spacing.md,
+                backgroundColor: isDark ? '#2a2a2a' : '#e5e5e5',
+                borderRadius: radius.lg,
+                paddingVertical: 16,
                 alignItems: 'center',
-              }}>
+                opacity: pressed ? 0.85 : 1,
+              })}>
               <Text
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
+                  color: colors.text,
                 }}>
                 Again
               </Text>
             </Pressable>
             <Pressable
               onPress={handleGood}
-              style={{
+              style={({ pressed }) => ({
                 flex: 1,
                 backgroundColor: colors.primary,
-                borderRadius: radius.md,
-                paddingVertical: spacing.md,
+                borderRadius: radius.lg,
+                paddingVertical: 16,
                 alignItems: 'center',
-              }}>
+                opacity: pressed ? 0.85 : 1,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: spacing.sm,
+                elevation: 4,
+              })}>
               <Text
                 style={{
                   fontSize: 16,
@@ -568,8 +543,8 @@ export default function StudyScreen() {
               </Text>
             </Pressable>
           </View>
-        </ContentContainer>
+        </View>
       )}
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }

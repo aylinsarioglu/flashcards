@@ -1,12 +1,13 @@
 import { FlatList, Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
-import ContentContainer from '../components/ContentContainer';
+import ScreenContainer from '../components/ScreenContainer';
 import { darkTheme, lightTheme, radius, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import { useTheme } from '../storage/ThemeContext';
 import type { Card } from '../types/card';
+
+type CardWithFavorite = Card & { favorite?: boolean };
 
 export default function ManageCardsScreen() {
   const { cards, setCards } = useCards();
@@ -18,31 +19,43 @@ export default function ManageCardsScreen() {
   }
 
   function renderCard({ item }: { item: Card }) {
+    const card = item as CardWithFavorite;
+    const isFavorite = card.favorite === true;
+
     return (
-      <ContentContainer>
+      <View
+        style={{
+          width: '100%',
+          backgroundColor: colors.card,
+          borderRadius: radius.xl,
+          padding: spacing.lg,
+          marginBottom: spacing.lg,
+          borderWidth: 1,
+          borderColor: isDark ? '#2a2a2a' : '#f0f0f0',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDark ? 0.2 : 0.08,
+          shadowRadius: 12,
+          elevation: 4,
+        }}>
         <View
           style={{
-            width: '100%',
-            backgroundColor: colors.card,
-            borderRadius: radius.lg,
-            padding: 20,
-            marginBottom: spacing.md,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.08,
-            shadowRadius: spacing.sm,
-            elevation: 3,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: spacing.lg,
+            gap: spacing.md,
           }}>
           <View
             style={{
+              flex: 1,
               flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: spacing.md,
+              flexWrap: 'wrap',
+              gap: spacing.sm,
             }}>
             <View
               style={{
-                backgroundColor: '#eef4ff',
+                backgroundColor: isDark ? '#1a2a44' : '#eef4ff',
                 borderRadius: radius.xl,
                 paddingHorizontal: 12,
                 paddingVertical: 6,
@@ -50,55 +63,98 @@ export default function ManageCardsScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  fontWeight: '600',
+                  fontWeight: '700',
                   color: colors.primary,
+                  letterSpacing: 0.2,
                 }}>
-                {item.deck}
+                📚 {card.deck}
               </Text>
             </View>
-            <Pressable
+
+            <View
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#f5f5f5',
-                alignItems: 'center',
-                justifyContent: 'center',
+                backgroundColor: card.learned
+                  ? isDark
+                    ? '#1a3324'
+                    : '#e8f8ee'
+                  : isDark
+                    ? '#2a2a2a'
+                    : '#f5f5f5',
+                borderRadius: radius.xl,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
               }}>
-              <Text style={{ fontSize: 18 }}>☆</Text>
-            </Pressable>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: card.learned ? colors.success : colors.muted,
+                }}>
+                {card.learned ? '✅ Learned' : '⏳ Learning'}
+              </Text>
+            </View>
           </View>
 
+          <Pressable
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: isFavorite
+                ? isDark
+                  ? '#3d3200'
+                  : '#fff8e1'
+                : isDark
+                  ? '#2a2a2a'
+                  : '#f8f8f8',
+              borderWidth: 1.5,
+              borderColor: isFavorite ? '#ffb800' : isDark ? '#444444' : '#e0e0e0',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.85 : 1,
+            })}>
+            <Text
+              style={{
+                fontSize: 22,
+                color: isFavorite ? '#ffb800' : isDark ? '#d4d4d4' : '#888888',
+              }}>
+              {isFavorite ? '★' : '☆'}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={{ marginBottom: spacing.md }}>
           <Text
             style={{
               fontSize: 11,
               fontWeight: '700',
-              color: '#999',
+              color: colors.muted,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 6,
+              letterSpacing: 0.8,
+              marginBottom: spacing.sm,
             }}>
             Front
           </Text>
           <Text
             style={{
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: '700',
               color: colors.text,
-              marginBottom: spacing.md,
-              lineHeight: 28,
+              lineHeight: 30,
             }}>
-            {item.front}
+            {card.front}
           </Text>
+        </View>
 
+        <View style={{ marginBottom: spacing.lg }}>
           <Text
             style={{
               fontSize: 11,
               fontWeight: '700',
-              color: '#999',
+              color: colors.muted,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 6,
+              letterSpacing: 0.8,
+              marginBottom: spacing.sm,
             }}>
             Back
           </Text>
@@ -106,79 +162,95 @@ export default function ManageCardsScreen() {
             style={{
               fontSize: 16,
               fontWeight: '500',
-              color: '#444',
-              marginBottom: 20,
+              color: isDark ? '#d4d4d4' : '#444444',
               lineHeight: 24,
             }}>
-            {item.back}
+            {card.back}
           </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: item.learned ? colors.success : colors.muted,
-              marginBottom: 20,
-            }}>
-            {item.learned ? '✅ Learned' : '⏳ Learning'}
-          </Text>
-
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Pressable
-              onPress={() => router.push(`/edit-card?id=${item.id}`)}
-              style={({ pressed }) => ({
-                flex: 1,
-                backgroundColor: pressed ? '#0056b3' : colors.primary,
-                paddingVertical: 12,
-                borderRadius: radius.md,
-                alignItems: 'center',
-              })}>
-              <Text
-                style={{
-                  color: colors.card,
-                  fontSize: 15,
-                  fontWeight: '600',
-                }}>
-                Edit
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => handleDelete(item.id)}
-              style={({ pressed }) => ({
-                flex: 1,
-                backgroundColor: pressed ? '#d70015' : colors.danger,
-                paddingVertical: 12,
-                borderRadius: radius.md,
-                alignItems: 'center',
-              })}>
-              <Text
-                style={{
-                  color: colors.card,
-                  fontSize: 15,
-                  fontWeight: '600',
-                }}>
-                Delete
-              </Text>
-            </Pressable>
-          </View>
         </View>
-      </ContentContainer>
+
+        {card.example && (
+          <View
+            style={{
+              backgroundColor: isDark ? '#1a1a1a' : '#f8f9fa',
+              borderRadius: radius.md,
+              padding: spacing.md,
+              marginBottom: spacing.lg,
+            }}>
+            <Text
+              style={{
+                fontSize: 14,
+                color: isDark ? '#d4d4d4' : '#555555',
+                fontStyle: 'italic',
+                lineHeight: 22,
+              }}>
+              {card.example}
+            </Text>
+          </View>
+        )}
+
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <Pressable
+            onPress={() => router.push(`/edit-card?id=${card.id}`)}
+            style={({ pressed }) => ({
+              flex: 1,
+              backgroundColor: colors.primary,
+              paddingVertical: 14,
+              borderRadius: radius.lg,
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 2,
+            })}>
+            <Text
+              style={{
+                color: colors.card,
+                fontSize: 15,
+                fontWeight: '600',
+              }}>
+              Edit
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleDelete(card.id)}
+            style={({ pressed }) => ({
+              flex: 1,
+              backgroundColor: colors.danger,
+              paddingVertical: 14,
+              borderRadius: radius.lg,
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+            })}>
+            <Text
+              style={{
+                color: colors.card,
+                fontSize: 15,
+                fontWeight: '600',
+              }}>
+              Delete
+            </Text>
+          </Pressable>
+        </View>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <ScreenContainer
       style={{
-        flex: 1,
         backgroundColor: colors.background,
       }}>
-      <ContentContainer
+      <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: spacing.lg,
-          paddingVertical: 12,
+          paddingTop: spacing.md,
+          paddingBottom: spacing.sm,
         }}>
         <Pressable onPress={() => router.replace('/')}>
           <Text
@@ -199,21 +271,20 @@ export default function ManageCardsScreen() {
           Manage Cards
         </Text>
         <View style={{ width: 60 }} />
-      </ContentContainer>
+      </View>
 
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}
         renderItem={renderCard}
         contentContainerStyle={{
-          alignItems: 'center',
           paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
+          paddingTop: spacing.md,
           paddingBottom: spacing.xl,
         }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <ContentContainer style={{ alignItems: 'center', paddingTop: 64 }}>
+          <View style={{ alignItems: 'center', paddingTop: 64 }}>
             <Text style={{ fontSize: 72, marginBottom: spacing.lg }}>📚</Text>
             <Text
               style={{
@@ -259,9 +330,9 @@ export default function ManageCardsScreen() {
                 Create Card
               </Text>
             </Pressable>
-          </ContentContainer>
+          </View>
         }
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
