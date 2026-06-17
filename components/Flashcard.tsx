@@ -5,7 +5,18 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
+
+import {
+  cardRadius,
+  getShadow,
+  layout,
+  radius,
+  spacing,
+  typography,
+} from '../constants/theme';
+import { useTheme } from '../storage/ThemeContext';
 
 type FlashcardProps = {
   front: string;
@@ -13,15 +24,9 @@ type FlashcardProps = {
   deck: string;
   example?: string;
   exampleTranslation?: string;
+  favorite?: boolean;
+  learned?: boolean;
 };
-
-function DeckBadge({ deck }: { deck: string }) {
-  return (
-    <View style={styles.deckBadge}>
-      <Text style={styles.deckBadgeText}>{deck}</Text>
-    </View>
-  );
-}
 
 export default function Flashcard({
   front,
@@ -29,10 +34,17 @@ export default function Flashcard({
   deck,
   example,
   exampleTranslation,
+  favorite = false,
+  learned = false,
 }: FlashcardProps) {
+  const { colors, isDark } = useTheme();
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.min(width - layout.contentPadding * 2, 400);
+
   const [flipped, setFlipped] = useState(false);
   const isAnimating = useRef(false);
   const flipAnimation = useRef(new Animated.Value(0)).current;
+  const scaleAnimation = useRef(new Animated.Value(1)).current;
 
   const frontRotate = flipAnimation.interpolate({
     inputRange: [0, 1],
@@ -47,7 +59,14 @@ export default function Flashcard({
   useEffect(() => {
     flipAnimation.setValue(0);
     setFlipped(false);
-  }, [front, back, deck, flipAnimation]);
+    scaleAnimation.setValue(0.96);
+    Animated.spring(scaleAnimation, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [front, back, deck, flipAnimation, scaleAnimation]);
 
   function handlePress() {
     if (isAnimating.current) {
@@ -61,7 +80,7 @@ export default function Flashcard({
 
     Animated.timing(flipAnimation, {
       toValue,
-      duration: 300,
+      duration: 350,
       useNativeDriver: true,
     }).start(({ finished }) => {
       if (finished) {
@@ -73,149 +92,286 @@ export default function Flashcard({
   }
 
   return (
-    <Pressable onPress={handlePress}>
-      <View style={styles.card}>
-        <View style={styles.flipContainer}>
-          <Animated.View
-            style={[
-              styles.cardFace,
-              {
-                transform: [{ rotateY: frontRotate }],
-              },
-            ]}>
-            <DeckBadge deck={deck} />
-
-            <View style={styles.contentCenter}>
-              <Text style={styles.frontText}>{front}</Text>
-            </View>
-
-            <Text style={styles.hintText}>Tap to reveal meaning</Text>
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              styles.cardFace,
-              {
-                transform: [{ rotateY: backRotate }],
-              },
-            ]}>
-            <DeckBadge deck={deck} />
-
-            <View style={styles.backContent}>
-              <View style={{ marginBottom: 20 }}>
-                <Text style={styles.sectionLabel}>Meaning</Text>
-                <Text style={styles.backText}>{back}</Text>
+    <Animated.View style={{ transform: [{ scale: scaleAnimation }] }}>
+      <Pressable onPress={handlePress} style={{ width: cardWidth }}>
+        <View
+          style={[
+            styles.card,
+            {
+              width: cardWidth,
+              backgroundColor: colors.card,
+              borderColor: colors.borderLight,
+              ...getShadow('elevated', isDark),
+            },
+          ]}>
+          <View style={styles.flipContainer}>
+            <Animated.View
+              style={[
+                styles.cardFace,
+                { transform: [{ rotateY: frontRotate }] },
+              ]}>
+              <View
+                style={[
+                  styles.deckBadge,
+                  { backgroundColor: colors.primarySoft },
+                ]}>
+                <Text style={[styles.deckBadgeText, { color: colors.primary }]}>
+                  {deck}
+                </Text>
               </View>
 
-              {example && (
-                <View style={{ marginBottom: exampleTranslation ? 20 : 0 }}>
-                  <Text style={styles.sectionLabel}>Example</Text>
-                  <Text style={styles.exampleText}>{example}</Text>
-                </View>
-              )}
+              <View style={styles.contentCenter}>
+                <Text style={[styles.frontText, { color: colors.text }]}>
+                  {front}
+                </Text>
+              </View>
 
-              {exampleTranslation && (
-                <View>
-                  <Text style={styles.sectionLabel}>Translation</Text>
-                  <Text style={styles.translationText}>
-                    {exampleTranslation}
+              <View
+                style={[
+                  styles.hintPill,
+                  { backgroundColor: colors.surface },
+                ]}>
+                <Text style={[styles.hintText, { color: colors.muted }]}>
+                  Tap to reveal
+                </Text>
+              </View>
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.cardFace,
+                { transform: [{ rotateY: backRotate }] },
+              ]}>
+              <View style={styles.backHeader}>
+                <View
+                  style={[
+                    styles.deckBadge,
+                    styles.backDeckBadge,
+                    { backgroundColor: colors.secondarySoft },
+                  ]}>
+                  <Text style={[styles.deckBadgeText, { color: colors.secondary }]}>
+                    {deck}
                   </Text>
                 </View>
-              )}
-            </View>
+                <View style={styles.statusBadges}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: favorite
+                          ? colors.warningSoft
+                          : colors.surface,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.statusText,
+                        {
+                          color: favorite ? colors.warning : colors.muted,
+                        },
+                      ]}>
+                      {favorite ? 'Favorite' : 'Not Favorite'}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: learned
+                          ? colors.successSoft
+                          : colors.surface,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.statusText,
+                        {
+                          color: learned ? colors.success : colors.muted,
+                        },
+                      ]}>
+                      {learned ? 'Learned' : 'Learning'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
 
-            <Text style={[styles.hintText, { marginTop: 16 }]}>
-              Tap to flip back
-            </Text>
-          </Animated.View>
+              <View style={styles.backContent}>
+                <View style={{ marginBottom: spacing.md }}>
+                  <Text
+                    style={[
+                      typography.label,
+                      styles.sectionLabel,
+                      { color: colors.muted },
+                    ]}>
+                    Meaning
+                  </Text>
+                  <Text style={[styles.backText, { color: colors.text }]}>
+                    {back}
+                  </Text>
+                </View>
+
+                {example ? (
+                  <View
+                    style={[
+                      styles.exampleBox,
+                      {
+                        backgroundColor: colors.surfaceElevated,
+                        marginBottom: exampleTranslation ? spacing.md : 0,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        typography.label,
+                        styles.sectionLabel,
+                        { color: colors.muted },
+                      ]}>
+                      Example
+                    </Text>
+                    <Text style={[styles.exampleText, { color: colors.text }]}>
+                      {example}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {exampleTranslation ? (
+                  <View
+                    style={[
+                      styles.exampleBox,
+                      { backgroundColor: colors.surfaceElevated },
+                    ]}>
+                    <Text
+                      style={[
+                        typography.label,
+                        styles.sectionLabel,
+                        { color: colors.muted },
+                      ]}>
+                      Translation
+                    </Text>
+                    <Text
+                      style={[styles.translationText, { color: colors.muted }]}>
+                      {exampleTranslation}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View
+                style={[
+                  styles.hintPill,
+                  { backgroundColor: colors.surface },
+                ]}>
+                <Text style={[styles.hintText, { color: colors.muted }]}>
+                  Tap to flip back
+                </Text>
+              </View>
+            </Animated.View>
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    width: 320,
-    minHeight: 300,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 8,
+    minHeight: 360,
+    borderRadius: cardRadius,
+    padding: spacing.lg,
+    borderWidth: 1,
   },
   flipContainer: {
     flex: 1,
-    minHeight: 252,
-    perspective: 1000,
+    minHeight: 312,
   },
   cardFace: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backfaceVisibility: 'hidden',
   },
   contentCenter: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing.md,
   },
   backContent: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
+  },
+  backHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   frontText: {
     fontSize: 30,
-    fontWeight: '700',
+    fontWeight: '800',
     textAlign: 'center',
-    color: '#1a1a1a',
     lineHeight: 38,
+    letterSpacing: -0.4,
   },
   backText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#1a1a1a',
-    lineHeight: 32,
+    lineHeight: 30,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
+  },
+  exampleBox: {
+    borderRadius: radius.lg,
+    padding: spacing.md,
   },
   exampleText: {
     fontSize: 15,
-    color: '#444',
     fontStyle: 'italic',
     lineHeight: 22,
   },
   translationText: {
     fontSize: 15,
-    color: '#666',
     lineHeight: 22,
+  },
+  hintPill: {
+    alignSelf: 'center',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   hintText: {
     fontSize: 13,
-    color: '#aaa',
-    textAlign: 'center',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   deckBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#eef4ff',
-    borderRadius: 20,
-    paddingHorizontal: 12,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    marginBottom: 24,
+    marginBottom: spacing.md,
+  },
+  backDeckBadge: {
+    marginBottom: 0,
   },
   deckBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  statusBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  statusBadge: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+  },
+  statusText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#007AFF',
     letterSpacing: 0.3,
   },
 });

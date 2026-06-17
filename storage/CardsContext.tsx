@@ -19,12 +19,19 @@ import {
   computeAchievements,
   hasAchievementChanges,
 } from './achievementsStorage';
+import {
+  clearContinueLearningStorage,
+  loadContinueLearning,
+  saveContinueLearning as persistContinueLearning,
+  type ContinueLearningState,
+} from './continueLearningStorage';
 import { loadCards, saveCards } from './cardsStorage';
 
 const DAILY_PROGRESS_KEY = 'FLASHCARDS_DAILY_PROGRESS';
 const STREAK_KEY = 'FLASHCARDS_STREAK';
 const ACHIEVEMENTS_KEY = 'FLASHCARDS_ACHIEVEMENTS';
-const DAILY_GOAL = 10;
+const DAILY_GOAL_KEY = 'FLASHCARDS_DAILY_GOAL';
+const DEFAULT_DAILY_GOAL = 10;
 
 export type { Achievements };
 export { ACHIEVEMENT_DEFINITIONS };
@@ -48,11 +55,19 @@ type CardsContextValue = {
   setCards: React.Dispatch<React.SetStateAction<Card[]>>;
   dailyProgress: DailyProgress;
   dailyGoal: number;
+  setDailyGoal: (goal: number) => void;
   currentStreak: number;
   achievements: Achievements;
+  continueLearning: ContinueLearningState | null;
+  isContinueLearningLoaded: boolean;
+  saveContinueLearning: (deck: string, cardIndex: number) => void;
+  clearContinueLearning: () => void;
   incrementCardsReviewedToday: () => void;
   completeStudySession: () => void;
+  resetProgress: () => void;
 };
+
+export type { ContinueLearningState };
 
 const CardsContext = createContext<CardsContextValue | null>(null);
 
@@ -110,9 +125,15 @@ export function CardsProvider({ children }: CardsProviderProps) {
   const [achievements, setAchievements] = useState<Achievements>(
     DEFAULT_ACHIEVEMENTS,
   );
+  const [dailyGoal, setDailyGoalState] = useState(DEFAULT_DAILY_GOAL);
+  const [continueLearning, setContinueLearning] =
+    useState<ContinueLearningState | null>(null);
   const [isProgressLoaded, setIsProgressLoaded] = useState(false);
   const [isStreakLoaded, setIsStreakLoaded] = useState(false);
   const [isAchievementsLoaded, setIsAchievementsLoaded] = useState(false);
+  const [isDailyGoalLoaded, setIsDailyGoalLoaded] = useState(false);
+  const [isContinueLearningLoaded, setIsContinueLearningLoaded] =
+    useState(false);
   const progressDateRef = useRef(getTodayKey());
   const streakStateRef = useRef<StoredStreak>({
     currentStreak: 0,
@@ -160,6 +181,24 @@ export function CardsProvider({ children }: CardsProviderProps) {
         ...stored,
       });
       setIsAchievementsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem(DAILY_GOAL_KEY).then((data) => {
+      const stored = data ? Number.parseInt(data, 10) : DEFAULT_DAILY_GOAL;
+
+      setDailyGoalState(
+        Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_DAILY_GOAL,
+      );
+      setIsDailyGoalLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    loadContinueLearning().then((stored) => {
+      setContinueLearning(stored);
+      setIsContinueLearningLoaded(true);
     });
   }, []);
 
@@ -227,6 +266,32 @@ export function CardsProvider({ children }: CardsProviderProps) {
     AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
   }, [achievements, isAchievementsLoaded]);
 
+  useEffect(() => {
+    if (!isDailyGoalLoaded) {
+      return;
+    }
+
+    AsyncStorage.setItem(DAILY_GOAL_KEY, String(dailyGoal));
+  }, [dailyGoal, isDailyGoalLoaded]);
+
+  useEffect(() => {
+    if (!isContinueLearningLoaded) {
+      return;
+    }
+
+    if (continueLearning) {
+      persistContinueLearning(continueLearning);
+      return;
+    }
+
+    clearContinueLearningStorage();
+  }, [continueLearning, isContinueLearningLoaded]);
+
+  function setDailyGoal(goal: number) {
+    const clamped = Math.max(1, Math.min(100, Math.round(goal)));
+    setDailyGoalState(clamped);
+  }
+
   function completeStudySession() {
     const today = getTodayKey();
 
@@ -263,17 +328,52 @@ export function CardsProvider({ children }: CardsProviderProps) {
     });
   }
 
+  function saveContinueLearning(deck: string, cardIndex: number) {
+    setContinueLearning({
+      deck,
+      cardIndex: Math.max(0, Math.round(cardIndex)),
+    });
+  }
+
+  function clearContinueLearning() {
+    setContinueLearning(null);
+  }
+
+  function resetProgress() {
+    const today = getTodayKey();
+
+    progressDateRef.current = today;
+    setDailyProgress({ cardsReviewedToday: 0 });
+
+    streakStateRef.current = { currentStreak: 0, lastStudyDate: null };
+    setCurrentStreak(0);
+
+    setAchievements(DEFAULT_ACHIEVEMENTS);
+    initialCardCountRef.current = cards.length;
+    setContinueLearning(null);
+
+    setCards((current) =>
+      current.map((card) => ({ ...card, learned: false })),
+    );
+  }
+
   return (
     <CardsContext.Provider
       value={{
         cards,
         setCards,
         dailyProgress,
-        dailyGoal: DAILY_GOAL,
+        dailyGoal,
+        setDailyGoal,
         currentStreak,
         achievements,
+        continueLearning,
+        isContinueLearningLoaded,
+        saveContinueLearning,
+        clearContinueLearning,
         incrementCardsReviewedToday,
         completeStudySession,
+        resetProgress,
       }}>
       {children}
     </CardsContext.Provider>

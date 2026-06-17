@@ -1,56 +1,56 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 
-import ScreenContainer from '../components/ScreenContainer';
+import ScreenContainer from '../../components/ScreenContainer';
 import {
   AppCard,
   PageHeader,
   PrimaryButton,
   TextField,
-} from '../components/ui';
-import { layout, spacing } from '../constants/theme';
-import { useCards } from '../storage/CardsContext';
-import { useTheme } from '../storage/ThemeContext';
+} from '../../components/ui';
+import {
+  layout,
+  spacing,
+} from '../../constants/theme';
+import { useCards } from '../../storage/CardsContext';
+import { useTheme } from '../../storage/ThemeContext';
+import type { Card } from '../../types/card';
 
-export default function EditCardScreen() {
-  const params = useLocalSearchParams<{ id: string }>();
-  const cardId = Array.isArray(params.id) ? params.id[0] : params.id;
-
+export default function AddCardScreen() {
   const { cards, setCards } = useCards();
   const { colors, isDark } = useTheme();
-  const existingCard = cards.find((card) => card.id === cardId);
+  const [front, setFront] = useState('');
+  const [back, setBack] = useState('');
+  const [example, setExample] = useState('');
+  const [exampleTranslation, setExampleTranslation] = useState('');
+  const [deck, setDeck] = useState('');
 
-  const [front, setFront] = useState(existingCard?.front ?? '');
-  const [back, setBack] = useState(existingCard?.back ?? '');
-  const [example, setExample] = useState(existingCard?.example ?? '');
-  const [exampleTranslation, setExampleTranslation] = useState(
-    existingCard?.exampleTranslation ?? '',
-  );
-  const [deck, setDeck] = useState(existingCard?.deck ?? '');
+  const canSubmit = front.trim() && back.trim() && deck.trim();
 
-  const canSave = front.trim() && back.trim() && deck.trim() && existingCard;
-
-  function handleSaveChanges() {
-    if (!canSave) {
+  function handleAddCard() {
+    if (!canSubmit) {
       return;
     }
 
-    setCards(
-      cards.map((card) =>
-        card.id === cardId
-          ? {
-              ...card,
-              front,
-              back,
-              category: deck,
-              deck,
-              ...(example ? { example } : {}),
-              ...(exampleTranslation ? { exampleTranslation } : {}),
-            }
-          : card,
-      ),
-    );
+    const newCard: Card = {
+      id: Date.now().toString(),
+      front,
+      back,
+      category: deck,
+      deck,
+      learned: false,
+      ...(example ? { example } : {}),
+      ...(exampleTranslation ? { exampleTranslation } : {}),
+    };
+
+    setCards([...cards, newCard]);
+
+    setFront('');
+    setBack('');
+    setExample('');
+    setExampleTranslation('');
+    setDeck('');
 
     router.replace('/cards');
   }
@@ -66,8 +66,8 @@ export default function EditCardScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
         <PageHeader
-          title="Edit Card"
-          subtitle="Update your flashcard details."
+          title="Add Card"
+          subtitle="Build your deck with rich examples and translations."
           colors={colors}
         />
 
@@ -76,7 +76,7 @@ export default function EditCardScreen() {
             label="Front"
             value={front}
             onChangeText={setFront}
-            placeholder="Enter front text"
+            placeholder="e.g. make a decision"
             colors={colors}
             isDark={isDark}
           />
@@ -84,7 +84,7 @@ export default function EditCardScreen() {
             label="Back"
             value={back}
             onChangeText={setBack}
-            placeholder="Enter back text"
+            placeholder="e.g. karar vermek"
             colors={colors}
             isDark={isDark}
           />
@@ -92,7 +92,7 @@ export default function EditCardScreen() {
             label="Example"
             value={example}
             onChangeText={setExample}
-            placeholder="Enter example sentence"
+            placeholder="e.g. She made a difficult decision."
             colors={colors}
             isDark={isDark}
             multiline
@@ -101,7 +101,7 @@ export default function EditCardScreen() {
             label="Example Translation"
             value={exampleTranslation}
             onChangeText={setExampleTranslation}
-            placeholder="Enter example translation"
+            placeholder="e.g. Zor bir karar verdi."
             colors={colors}
             isDark={isDark}
             multiline
@@ -110,7 +110,7 @@ export default function EditCardScreen() {
             label="Deck"
             value={deck}
             onChangeText={setDeck}
-            placeholder="Deck name"
+            placeholder="e.g. Collocations"
             colors={colors}
             isDark={isDark}
             style={{ marginBottom: 0 }}
@@ -119,12 +119,12 @@ export default function EditCardScreen() {
 
         <View style={{ marginTop: spacing.lg }}>
           <PrimaryButton
-            label="Save Changes"
-            icon="checkmark-circle"
-            onPress={handleSaveChanges}
+            label="Add Card"
+            icon="add-circle"
+            onPress={handleAddCard}
             colors={colors}
             isDark={isDark}
-            disabled={!canSave}
+            disabled={!canSubmit}
           />
         </View>
       </ScrollView>
