@@ -7,16 +7,10 @@ import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import Flashcard from '../../components/Flashcard';
 import ScreenContainer from '../../components/ScreenContainer';
-import {
-  PressableScale,
-  SessionCompleteActions,
-  SessionCompleteAnimation,
-  SessionCompleteHero,
-  SessionCompleteStats,
-} from '../../components/animations';
+import SessionComplete from '../../components/SessionComplete';
+import { PressableScale } from '../../components/animations';
 import {
   Badge,
-  CompletionStat,
   IconCircle,
   ProgressTrack,
   RatingButton,
@@ -337,90 +331,12 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
           justifyContent: 'center',
           paddingHorizontal: layout.contentPadding,
         }}>
-        <SessionCompleteAnimation>
-          <AppCard accentColor={colors.success} style={{ alignItems: 'center' }}>
-            <SessionCompleteHero>
-              <IconCircle
-                icon="trophy"
-                backgroundColor={colors.successSoft}
-                iconColor={colors.success}
-                size={64}
-              />
-            </SessionCompleteHero>
-
-            <Text
-              style={[
-                typography.display,
-                {
-                  color: colors.text,
-                  textAlign: 'center',
-                  marginTop: spacing.lg,
-                  fontSize: 28,
-                },
-              ]}>
-              Session Complete
-            </Text>
-            <Text
-              style={[
-                typography.body,
-                {
-                  color: colors.muted,
-                  textAlign: 'center',
-                  marginTop: spacing.sm,
-                  marginBottom: spacing.xl,
-                },
-              ]}>
-              You reviewed {sessionTotal} {sessionTotal === 1 ? 'card' : 'cards'}.
-              Keep the momentum going!
-            </Text>
-
-            <SessionCompleteStats>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  gap: spacing.sm,
-                  width: '100%',
-                  marginBottom: spacing.xl,
-                }}>
-                <CompletionStat
-                  value={goodCount}
-                  label="Good"
-                  accent={colors.primary}
-                  icon="checkmark-circle"
-                  colors={colors}
-                  isDark={isDark}
-                />
-                <CompletionStat
-                  value={againCount}
-                  label="Again"
-                  accent={colors.warning}
-                  icon="refresh"
-                  colors={colors}
-                  isDark={isDark}
-                />
-                <CompletionStat
-                  value={`${accuracyPercent}%`}
-                  label="Accuracy"
-                  accent={colors.success}
-                  icon="analytics"
-                  colors={colors}
-                  isDark={isDark}
-                />
-              </View>
-            </SessionCompleteStats>
-
-            <SessionCompleteActions>
-              <View style={{ width: '100%', gap: spacing.md }}>
-                <AppButton title="Study Again" onPress={handleRestart} />
-                <AppButton
-                  title="Back Home"
-                  variant="outline"
-                  onPress={() => router.replace('/(tabs)/index')}
-                />
-              </View>
-            </SessionCompleteActions>
-          </AppCard>
-        </SessionCompleteAnimation>
+        <SessionComplete
+          cardsReviewed={sessionTotal}
+          accuracyPercent={accuracyPercent}
+          onStudyAgain={handleRestart}
+          onBackHome={() => router.replace('/')}
+        />
       </ScreenContainer>
     );
   }
@@ -437,7 +353,7 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
           }}>
           {deck ? (
             <PressableScale
-              onPress={() => router.replace('/(tabs)/index')}
+              onPress={() => router.replace('/')}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',

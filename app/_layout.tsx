@@ -14,10 +14,11 @@ export default function RootLayout() {
             animation: 'fade_from_bottom',
             animationDuration: 280,
           }}>
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="edit-card"
             options={{
+              headerShown: false,
               presentation: 'modal',
               animation: 'slide_from_bottom',
             }}

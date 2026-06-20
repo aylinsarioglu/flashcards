@@ -125,7 +125,7 @@ export default function Flashcard({
           <View
             style={[
               styles.flipContainer,
-              { minHeight: isLarge ? 372 : 312, perspective: 1200 as const },
+              { minHeight: isLarge ? 372 : 312 },
             ]}>
             <Animated.View              style={[
                 styles.cardFace,

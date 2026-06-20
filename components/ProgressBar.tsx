@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Text, View } from 'react-native';
 
 import {
   radius,
@@ -18,20 +13,25 @@ type ProgressBarProps = {
   total: number;
 };
 
+const PROGRESS_DURATION = 400;
+
 export default function ProgressBar({ current, total }: ProgressBarProps) {
   const { colors } = useTheme();
   const progress = total > 0 ? current / total : 0;
   const percent = Math.round(progress * 100);
   const [trackWidth, setTrackWidth] = useState(0);
-  const animatedPercent = useSharedValue(0);
+  const fillWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    animatedPercent.value = withTiming(percent, { duration: 420 });
-  }, [animatedPercent, percent]);
+    const targetWidth = (percent / 100) * trackWidth;
 
-  const fillStyle = useAnimatedStyle(() => ({
-    width: (animatedPercent.value / 100) * trackWidth,
-  }));
+    Animated.timing(fillWidth, {
+      toValue: targetWidth,
+      duration: PROGRESS_DURATION,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [percent, trackWidth, fillWidth]);
 
   return (
     <View style={{ width: '100%' }}>
@@ -67,14 +67,12 @@ export default function ProgressBar({ current, total }: ProgressBarProps) {
           overflow: 'hidden',
         }}>
         <Animated.View
-          style={[
-            {
-              height: '100%',
-              backgroundColor: colors.primary,
-              borderRadius: radius.full,
-            },
-            fillStyle,
-          ]}
+          style={{
+            height: '100%',
+            width: fillWidth,
+            backgroundColor: colors.primary,
+            borderRadius: radius.full,
+          }}
         />
       </View>
       <Text

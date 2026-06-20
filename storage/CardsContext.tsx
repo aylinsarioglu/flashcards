@@ -26,6 +26,7 @@ import {
   type ContinueLearningState,
 } from './continueLearningStorage';
 import { loadCards, saveCards } from './cardsStorage';
+import type { AppBackup } from './backupStorage';
 
 const DAILY_PROGRESS_KEY = 'FLASHCARDS_DAILY_PROGRESS';
 const STREAK_KEY = 'FLASHCARDS_STREAK';
@@ -65,6 +66,8 @@ type CardsContextValue = {
   incrementCardsReviewedToday: () => void;
   completeStudySession: () => void;
   resetProgress: () => void;
+  exportBackupData: () => AppBackup;
+  restoreBackupData: (backup: AppBackup) => Promise<void>;
 };
 
 export type { ContinueLearningState };
@@ -357,6 +360,57 @@ export function CardsProvider({ children }: CardsProviderProps) {
     );
   }
 
+  function exportBackupData(): AppBackup {
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      cards,
+      dailyGoal,
+      dailyProgress: {
+        date: progressDateRef.current,
+        cardsReviewedToday: dailyProgress.cardsReviewedToday,
+      },
+      streak: { ...streakStateRef.current },
+      achievements,
+      continueLearning,
+    };
+  }
+
+  async function restoreBackupData(backup: AppBackup) {
+    progressDateRef.current = backup.dailyProgress.date;
+    setDailyProgress({
+      cardsReviewedToday: backup.dailyProgress.cardsReviewedToday,
+    });
+    await AsyncStorage.setItem(
+      DAILY_PROGRESS_KEY,
+      JSON.stringify(backup.dailyProgress),
+    );
+
+    streakStateRef.current = { ...backup.streak };
+    setCurrentStreak(backup.streak.currentStreak);
+    await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(backup.streak));
+
+    setAchievements({ ...DEFAULT_ACHIEVEMENTS, ...backup.achievements });
+    await AsyncStorage.setItem(
+      ACHIEVEMENTS_KEY,
+      JSON.stringify(backup.achievements),
+    );
+
+    setDailyGoalState(backup.dailyGoal);
+    await AsyncStorage.setItem(DAILY_GOAL_KEY, String(backup.dailyGoal));
+
+    setCards(backup.cards);
+    await saveCards(backup.cards);
+    initialCardCountRef.current = backup.cards.length;
+
+    setContinueLearning(backup.continueLearning);
+    if (backup.continueLearning) {
+      await persistContinueLearning(backup.continueLearning);
+    } else {
+      await clearContinueLearningStorage();
+    }
+  }
+
   return (
     <CardsContext.Provider
       value={{
@@ -374,6 +428,8 @@ export function CardsProvider({ children }: CardsProviderProps) {
         incrementCardsReviewedToday,
         completeStudySession,
         resetProgress,
+        exportBackupData,
+        restoreBackupData,
       }}>
       {children}
     </CardsContext.Provider>
