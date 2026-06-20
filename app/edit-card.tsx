@@ -2,13 +2,11 @@ import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import AppButton from '../components/AppButton';
+import AppCard from '../components/AppCard';
+import AppInput from '../components/AppInput';
 import ScreenContainer from '../components/ScreenContainer';
-import {
-  AppCard,
-  PageHeader,
-  PrimaryButton,
-  TextField,
-} from '../components/ui';
+import { PageHeader } from '../components/ui';
 import { layout, spacing } from '../constants/theme';
 import { useCards } from '../storage/CardsContext';
 import { useTheme } from '../storage/ThemeContext';
@@ -18,7 +16,7 @@ export default function EditCardScreen() {
   const cardId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const { cards, setCards } = useCards();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const existingCard = cards.find((card) => card.id === cardId);
 
   const [front, setFront] = useState(existingCard?.front ?? '');
@@ -71,59 +69,46 @@ export default function EditCardScreen() {
           colors={colors}
         />
 
-        <AppCard colors={colors} isDark={isDark} accentColor={colors.primary}>
-          <TextField
+        <AppCard accentColor={colors.primary}>
+          <AppInput
             label="Front"
             value={front}
             onChangeText={setFront}
             placeholder="Enter front text"
-            colors={colors}
-            isDark={isDark}
           />
-          <TextField
+          <AppInput
             label="Back"
             value={back}
             onChangeText={setBack}
             placeholder="Enter back text"
-            colors={colors}
-            isDark={isDark}
           />
-          <TextField
+          <AppInput
             label="Example"
             value={example}
             onChangeText={setExample}
             placeholder="Enter example sentence"
-            colors={colors}
-            isDark={isDark}
             multiline
           />
-          <TextField
+          <AppInput
             label="Example Translation"
             value={exampleTranslation}
             onChangeText={setExampleTranslation}
             placeholder="Enter example translation"
-            colors={colors}
-            isDark={isDark}
             multiline
           />
-          <TextField
+          <AppInput
             label="Deck"
             value={deck}
             onChangeText={setDeck}
             placeholder="Deck name"
-            colors={colors}
-            isDark={isDark}
             style={{ marginBottom: 0 }}
           />
         </AppCard>
 
         <View style={{ marginTop: spacing.lg }}>
-          <PrimaryButton
-            label="Save Changes"
-            icon="checkmark-circle"
+          <AppButton
+            title="Save Changes"
             onPress={handleSaveChanges}
-            colors={colors}
-            isDark={isDark}
             disabled={!canSave}
           />
         </View>

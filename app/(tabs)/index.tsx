@@ -3,25 +3,20 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
+import AppButton from '../../components/AppButton';
+import AppCard from '../../components/AppCard';
 import ScreenContainer from '../../components/ScreenContainer';
 import { FadeInView, motion } from '../../components/animations';
 import {
-  AppCard,
   Badge,
   GoalSegments,
   IconCircle,
   PageHeader,
-  PrimaryButton,
   ProgressTrack,
   SectionTitle,
-  SecondaryButton,
   StatCard,
 } from '../../components/ui';
-import {
-  layout,
-  spacing,
-  typography,
-} from '../../constants/theme';
+import { layout, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
 import { useTheme } from '../../storage/ThemeContext';
 
@@ -167,50 +162,49 @@ export default function HomeScreen() {
 
         <SectionTitle title="Today's Goal" colors={colors} />
 
-        <AppCard
-          colors={colors}
-          isDark={isDark}
-          accentColor={colors.primary}
-          entranceDelay={0}
-          style={{ marginBottom: spacing.lg }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              marginBottom: spacing.md,
-            }}>
-            <IconCircle
-              icon="today"
-              backgroundColor={colors.primarySoft}
-              iconColor={colors.primary}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={[typography.subtitle, { color: colors.text }]}>
-                Today&apos;s Goal
-              </Text>
-              <Text style={[typography.caption, { color: colors.muted }]}>
-                {goalProgressPercent}% complete
-              </Text>
+        <FadeInView delay={0}>
+          <AppCard
+            accentColor={colors.primary}
+            style={{ marginBottom: spacing.lg }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+                marginBottom: spacing.md,
+              }}>
+              <IconCircle
+                icon="today"
+                backgroundColor={colors.primarySoft}
+                iconColor={colors.primary}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.subtitle, { color: colors.text }]}>
+                  Today&apos;s Goal
+                </Text>
+                <Text style={[typography.caption, { color: colors.muted }]}>
+                  {goalProgressPercent}% complete
+                </Text>
+              </View>
             </View>
-          </View>
-          {dailyGoal <= 20 ? (
-            <GoalSegments
-              current={reviewedToday}
-              total={dailyGoal}
-              colors={colors}
-            />
-          ) : (
-            <ProgressTrack percent={goalProgressPercent} colors={colors} />
-          )}
-          <Text
-            style={[
-              typography.bodyMedium,
-              { color: colors.text, marginTop: spacing.md },
-            ]}>
-            {reviewedToday} / {dailyGoal} cards reviewed
-          </Text>
-        </AppCard>
+            {dailyGoal <= 20 ? (
+              <GoalSegments
+                current={reviewedToday}
+                total={dailyGoal}
+                colors={colors}
+              />
+            ) : (
+              <ProgressTrack percent={goalProgressPercent} colors={colors} />
+            )}
+            <Text
+              style={[
+                typography.bodyMedium,
+                { color: colors.text, marginTop: spacing.md },
+              ]}>
+              {reviewedToday} / {dailyGoal} cards reviewed
+            </Text>
+          </AppCard>
+        </FadeInView>
 
         <SectionTitle title="Current Streak" colors={colors} />
         <FadeInView delay={motion.stagger} style={{ marginBottom: spacing.lg }}>
@@ -226,82 +220,71 @@ export default function HomeScreen() {
 
         <SectionTitle title="Continue Learning" colors={colors} />
         {continueSession ? (
-          <AppCard
-            colors={colors}
-            isDark={isDark}
-            accentColor={colors.secondary}
-            entranceDelay={motion.stagger * 2}
-            style={{ marginBottom: spacing.lg }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing.md,
-                marginBottom: spacing.md,
-              }}>
-              <IconCircle
-                icon="book"
-                backgroundColor={colors.secondarySoft}
-                iconColor={colors.secondary}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[typography.title, { color: colors.text }]}>
-                  {continueSession.name}
-                </Text>
-                <Text style={[typography.caption, { color: colors.muted }]}>
-                  Card {continueSession.cardIndex + 1} of {continueSession.total}
-                </Text>
+          <FadeInView delay={motion.stagger * 2} style={{ marginBottom: spacing.lg }}>
+            <AppCard accentColor={colors.secondary}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                  marginBottom: spacing.md,
+                }}>
+                <IconCircle
+                  icon="book"
+                  backgroundColor={colors.secondarySoft}
+                  iconColor={colors.secondary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.title, { color: colors.text }]}>
+                    {continueSession.name}
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.muted }]}>
+                    Card {continueSession.cardIndex + 1} of {continueSession.total}
+                  </Text>
+                </View>
+                <Badge
+                  label={`${continueSession.progressPercent}%`}
+                  backgroundColor={colors.secondarySoft}
+                  textColor={colors.secondary}
+                />
               </View>
-              <Badge
-                label={`${continueSession.progressPercent}%`}
-                backgroundColor={colors.secondarySoft}
-                textColor={colors.secondary}
+              <ProgressTrack
+                percent={continueSession.progressPercent}
+                colors={colors}
+                fillColor={colors.secondary}
               />
-            </View>
-            <ProgressTrack
-              percent={continueSession.progressPercent}
-              colors={colors}
-              fillColor={colors.secondary}
-            />
-            <Text
-              style={[
-                typography.caption,
-                { color: colors.muted, marginTop: spacing.sm, marginBottom: spacing.lg },
-              ]}>
-              {continueSession.learned} of {continueSession.total} cards learned
-            </Text>
-            <PrimaryButton
-              label="Resume"
-              icon="play"
-              colors={colors}
-              isDark={isDark}
-              onPress={() =>
-                router.push(
-                  `/study?deck=${encodeURIComponent(continueSession.name)}&resume=1`,
-                )
-              }
-            />
-          </AppCard>
+              <Text
+                style={[
+                  typography.caption,
+                  { color: colors.muted, marginTop: spacing.sm, marginBottom: spacing.lg },
+                ]}>
+                {continueSession.learned} of {continueSession.total} cards learned
+              </Text>
+              <AppButton
+                title="Resume"
+                onPress={() =>
+                  router.push(
+                    `/study?deck=${encodeURIComponent(continueSession.name)}&resume=1`,
+                  )
+                }
+              />
+            </AppCard>
+          </FadeInView>
         ) : (
-          <AppCard
-            colors={colors}
-            isDark={isDark}
-            entranceDelay={motion.stagger * 2}
-            style={{ marginBottom: spacing.lg }}>
-            <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.xs }]}>
-              No paused session
-            </Text>
-            <Text style={[typography.caption, { color: colors.muted, marginBottom: spacing.lg }]}>
-              Start studying a deck to continue right where you left off.
-            </Text>
-            <PrimaryButton
-              label="Start Study"
-              icon="play"
-              colors={colors}
-              isDark={isDark}
-              onPress={() => router.push('/study?mode=all')}
-            />
-          </AppCard>
+          <FadeInView delay={motion.stagger * 2} style={{ marginBottom: spacing.lg }}>
+            <AppCard>
+              <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.xs }]}>
+                No paused session
+              </Text>
+              <Text style={[typography.caption, { color: colors.muted, marginBottom: spacing.lg }]}>
+                Start studying a deck to continue right where you left off.
+              </Text>
+              <AppButton
+                title="Start Study"
+                onPress={() => router.push('/study?mode=all')}
+              />
+            </AppCard>
+          </FadeInView>
         )}
 
         <SectionTitle title="My Decks" colors={colors} />
@@ -314,30 +297,49 @@ export default function HomeScreen() {
                 style={({ pressed }) => ({
                   opacity: pressed ? 0.94 : 1,
                 })}>
-                <AppCard
-                  colors={colors}
-                  isDark={isDark}
-                  entranceDelay={index < 3 ? motion.stagger * (3 + index) : undefined}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: spacing.sm,
-                    }}>
-                    <Text style={[typography.subtitle, { color: colors.text }]}>{deck.name}</Text>
-                    <Badge
-                      label={`${deck.learned}/${deck.total}`}
-                      backgroundColor={colors.primarySoft}
-                      textColor={colors.primary}
-                    />
-                  </View>
-                  <ProgressTrack percent={deck.progressPercent} colors={colors} />
-                </AppCard>
+                {index < 3 ? (
+                  <FadeInView delay={motion.stagger * (3 + index)}>
+                    <AppCard>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: spacing.sm,
+                        }}>
+                        <Text style={[typography.subtitle, { color: colors.text }]}>{deck.name}</Text>
+                        <Badge
+                          label={`${deck.learned}/${deck.total}`}
+                          backgroundColor={colors.primarySoft}
+                          textColor={colors.primary}
+                        />
+                      </View>
+                      <ProgressTrack percent={deck.progressPercent} colors={colors} />
+                    </AppCard>
+                  </FadeInView>
+                ) : (
+                  <AppCard>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: spacing.sm,
+                      }}>
+                      <Text style={[typography.subtitle, { color: colors.text }]}>{deck.name}</Text>
+                      <Badge
+                        label={`${deck.learned}/${deck.total}`}
+                        backgroundColor={colors.primarySoft}
+                        textColor={colors.primary}
+                      />
+                    </View>
+                    <ProgressTrack percent={deck.progressPercent} colors={colors} />
+                  </AppCard>
+                )}
               </Pressable>
             ))
           ) : (
-            <AppCard colors={colors} isDark={isDark}>
+            <AppCard>
               <Text style={[typography.body, { color: colors.muted }]}>
                 No decks yet. Add your first card to create one.
               </Text>
@@ -347,29 +349,22 @@ export default function HomeScreen() {
 
         <SectionTitle title="Quick Actions" colors={colors} />
         <View style={{ gap: spacing.sm, marginBottom: spacing.lg }}>
-          <PrimaryButton
-            label="Study All Cards"
-            icon="book"
-            colors={colors}
-            isDark={isDark}
+          <AppButton
+            title="Study All Cards"
             onPress={() => router.push('/study?mode=all')}
           />
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             <View style={{ flex: 1 }}>
-              <SecondaryButton
-                label="Add Card"
-                icon="add-circle"
-                colors={colors}
-                isDark={isDark}
+              <AppButton
+                title="Add Card"
+                variant="outline"
                 onPress={() => router.push('/add-card')}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <SecondaryButton
-                label="Manage Cards"
-                icon="albums"
-                colors={colors}
-                isDark={isDark}
+              <AppButton
+                title="Manage Cards"
+                variant="outline"
                 onPress={() => router.push('/cards')}
               />
             </View>
@@ -377,42 +372,44 @@ export default function HomeScreen() {
         </View>
 
         <SectionTitle title="Word of the Day" colors={colors} />
-        <AppCard
-          colors={colors}
-          isDark={isDark}
-          entranceDelay={motion.stagger * 5}
-          style={{ marginBottom: spacing.lg }}>
-          {wordOfTheDay ? (
-            <>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Ionicons name="sparkles" size={18} color={colors.accent} />
-                <Text style={[typography.caption, { color: colors.muted }]}>From {wordOfTheDay.deck}</Text>
-              </View>
-              <Text style={[typography.title, { color: colors.text, marginTop: spacing.sm }]}>
-                {wordOfTheDay.front}
+        <FadeInView delay={motion.stagger * 5} style={{ marginBottom: spacing.lg }}>
+          <AppCard>
+            {wordOfTheDay ? (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Ionicons name="sparkles" size={18} color={colors.accent} />
+                  <Text style={[typography.caption, { color: colors.muted }]}>
+                    From {wordOfTheDay.deck}
+                  </Text>
+                </View>
+                <Text style={[typography.title, { color: colors.text, marginTop: spacing.sm }]}>
+                  {wordOfTheDay.front}
+                </Text>
+                <Text style={[typography.body, { color: colors.muted, marginTop: spacing.xs }]}>
+                  {wordOfTheDay.back}
+                </Text>
+              </>
+            ) : (
+              <Text style={[typography.body, { color: colors.muted }]}>
+                Add cards to get a daily word recommendation.
               </Text>
-              <Text style={[typography.body, { color: colors.muted, marginTop: spacing.xs }]}>
-                {wordOfTheDay.back}
-              </Text>
-            </>
-          ) : (
-            <Text style={[typography.body, { color: colors.muted }]}>
-              Add cards to get a daily word recommendation.
-            </Text>
-          )}
-        </AppCard>
+            )}
+          </AppCard>
+        </FadeInView>
 
         <SectionTitle title="Recent Activity" colors={colors} />
-        <AppCard colors={colors} isDark={isDark} entranceDelay={motion.stagger * 6}>
-          <View style={{ gap: spacing.sm }}>
-            {recentActivity.map((activity) => (
-              <View key={activity} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Ionicons name="time-outline" size={16} color={colors.muted} />
-                <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{activity}</Text>
-              </View>
-            ))}
-          </View>
-        </AppCard>
+        <FadeInView delay={motion.stagger * 6}>
+          <AppCard>
+            <View style={{ gap: spacing.sm }}>
+              {recentActivity.map((activity) => (
+                <View key={activity} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Ionicons name="time-outline" size={16} color={colors.muted} />
+                  <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{activity}</Text>
+                </View>
+              ))}
+            </View>
+          </AppCard>
+        </FadeInView>
       </ScrollView>
     </ScreenContainer>
   );

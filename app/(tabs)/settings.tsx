@@ -2,8 +2,8 @@ import Constants from 'expo-constants';
 import { Alert, Pressable, ScrollView, Text, View, type AlertButton } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import AppCard from '../../components/AppCard';
 import ScreenContainer from '../../components/ScreenContainer';
-import { AppCard } from '../../components/ui';
 import {
   getShadow,
   radius,
@@ -153,7 +153,7 @@ export default function SettingsScreen() {
           Customize your learning experience.
         </Text>
 
-        <AppCard colors={colors} isDark={isDark} style={{ marginBottom: spacing.lg }}>
+        <AppCard style={{ marginBottom: spacing.lg }}>
           <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.md }]}>
             Appearance
           </Text>
@@ -167,7 +167,7 @@ export default function SettingsScreen() {
           />
         </AppCard>
 
-        <AppCard colors={colors} isDark={isDark} style={{ marginBottom: spacing.lg }}>
+        <AppCard style={{ marginBottom: spacing.lg }}>
           <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.md }]}>
             Learning
           </Text>
@@ -191,7 +191,7 @@ export default function SettingsScreen() {
           </View>
         </AppCard>
 
-        <AppCard colors={colors} isDark={isDark}>
+        <AppCard>
           <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.md }]}>
             App
           </Text>

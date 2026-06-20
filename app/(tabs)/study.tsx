@@ -1,36 +1,33 @@
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import AppButton from '../../components/AppButton';
+import AppCard from '../../components/AppCard';
 import Flashcard from '../../components/Flashcard';
-import ProgressBar from '../../components/ProgressBar';
 import ScreenContainer from '../../components/ScreenContainer';
 import {
+  PressableScale,
   SessionCompleteActions,
   SessionCompleteAnimation,
   SessionCompleteHero,
   SessionCompleteStats,
 } from '../../components/animations';
 import {
-  AppCard,
+  Badge,
   CompletionStat,
-  GhostButton,
   IconCircle,
-  PrimaryButton,
+  ProgressTrack,
   RatingButton,
-  SecondaryButton,
   SegmentedControl,
 } from '../../components/ui';
-import {
-  layout,
-  spacing,
-  typography,
-} from '../../constants/theme';
+import { spacing as dsSpacing } from '../../constants/spacing';
+import { typography as dsTypography } from '../../constants/typography';
+import { layout, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
 import { useTheme } from '../../storage/ThemeContext';
 import type { Card } from '../../types/card';
-
 type CardWithFavorite = Card & { favorite?: boolean };
 
 function filterStudyCards(
@@ -84,22 +81,7 @@ function getSessionTitle(mode?: string, deck?: string) {
   return 'Study Session';
 }
 
-function getSessionIcon(
-  mode?: string,
-): ComponentProps<typeof Ionicons>['name'] {
-  if (mode === 'favorites') {
-    return 'heart';
-  }
-
-  if (mode === 'learning') {
-    return 'school';
-  }
-
-  return 'book';
-}
-
-export default function StudyScreen() {
-  const params = useLocalSearchParams<{
+export default function StudyScreen() {  const params = useLocalSearchParams<{
     mode?: string;
     deck?: string;
     resume?: string;
@@ -290,8 +272,13 @@ export default function StudyScreen() {
     });
   }
 
-  if (filteredStudyCards.length === 0) {
-    return (
+  const progressPercent =
+    studyQueue.length > 0
+      ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
+      : 0;
+  const cardsRemaining = Math.max(studyQueue.length - currentIndex, 0);
+
+  if (filteredStudyCards.length === 0) {    return (
       <ScreenContainer
         style={{
           justifyContent: 'center',
@@ -299,7 +286,7 @@ export default function StudyScreen() {
         }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {!deck ? (
-            <AppCard colors={colors} isDark={isDark} style={{ marginBottom: spacing.lg }}>
+            <AppCard style={{ marginBottom: spacing.lg }}>
               <Text style={[typography.subtitle, { color: colors.text, marginBottom: spacing.md }]}>
                 Choose a mode
               </Text>
@@ -316,7 +303,7 @@ export default function StudyScreen() {
             </AppCard>
           ) : null}
 
-          <AppCard colors={colors} isDark={isDark} style={{ alignItems: 'center' }}>
+          <AppCard style={{ alignItems: 'center' }}>
             <IconCircle
               icon="folder-open-outline"
               backgroundColor={colors.surface}
@@ -351,11 +338,7 @@ export default function StudyScreen() {
           paddingHorizontal: layout.contentPadding,
         }}>
         <SessionCompleteAnimation>
-          <AppCard
-            colors={colors}
-            isDark={isDark}
-            accentColor={colors.success}
-            style={{ alignItems: 'center' }}>
+          <AppCard accentColor={colors.success} style={{ alignItems: 'center' }}>
             <SessionCompleteHero>
               <IconCircle
                 icon="trophy"
@@ -428,19 +411,11 @@ export default function StudyScreen() {
 
             <SessionCompleteActions>
               <View style={{ width: '100%', gap: spacing.md }}>
-                <PrimaryButton
-                  label="Study Again"
-                  icon="refresh"
-                  onPress={handleRestart}
-                  colors={colors}
-                  isDark={isDark}
-                />
-                <SecondaryButton
-                  label="Back Home"
-                  icon="home"
+                <AppButton title="Study Again" onPress={handleRestart} />
+                <AppButton
+                  title="Back Home"
+                  variant="outline"
                   onPress={() => router.replace('/(tabs)/index')}
-                  colors={colors}
-                  isDark={isDark}
                 />
               </View>
             </SessionCompleteActions>
@@ -453,46 +428,51 @@ export default function StudyScreen() {
   return (
     <ScreenContainer>
       <View style={{ flex: 1 }}>
+        {/* Compact progress header */}
         <View
           style={{
             paddingHorizontal: layout.contentPadding,
-            paddingTop: spacing.md,
-            paddingBottom: spacing.md,
+            paddingTop: dsSpacing[16],
+            paddingBottom: dsSpacing[12],
           }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: spacing.lg,
-            }}>
-            {deck ? (
-              <GhostButton
-                label="Back"
-                onPress={() => router.replace('/(tabs)/index')}
-                colors={colors}
-              />
-            ) : (
-              <View style={{ width: 80 }} />
-            )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Ionicons
-                name={getSessionIcon(mode)}
-                size={16}
-                color={colors.primary}
-              />
-              <Text style={[typography.caption, { color: colors.text, fontWeight: '700' }]}>
-                {getSessionTitle(mode, deck)}
+          {deck ? (
+            <PressableScale
+              onPress={() => router.replace('/(tabs)/index')}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                alignSelf: 'flex-start',
+                gap: dsSpacing[4],
+                marginBottom: dsSpacing[12],
+                paddingVertical: dsSpacing[4],
+                paddingRight: dsSpacing[8],
+              }}>
+              <Ionicons name="chevron-back" size={22} color={colors.primary} />
+              <Text
+                style={[
+                  dsTypography.subtitle,
+                  { color: colors.primary, fontSize: 16 },
+                ]}>
+                Back
               </Text>
-            </View>
-            <View style={{ width: 80 }} />
-          </View>
+            </PressableScale>
+          ) : null}
+
+          <Text style={[dsTypography.heading, { color: colors.text, fontSize: 26 }]}>
+            Study Session
+          </Text>
+          {!deck ? (
+            <Text
+              style={[
+                dsTypography.caption,
+                { color: colors.muted, marginTop: dsSpacing[4] },
+              ]}>
+              {getSessionTitle(mode, deck)}
+            </Text>
+          ) : null}
 
           {!deck ? (
-            <AppCard colors={colors} isDark={isDark} style={{ marginBottom: spacing.lg }}>
-              <Text style={[typography.label, { color: colors.muted, marginBottom: spacing.sm }]}>
-                Study mode
-              </Text>
+            <View style={{ marginTop: dsSpacing[12] }}>
               <SegmentedControl
                 colors={colors}
                 value={mode ?? 'all'}
@@ -503,37 +483,78 @@ export default function StudyScreen() {
                   { key: 'learning', label: 'Learning', icon: 'school' },
                 ]}
               />
-            </AppCard>
+            </View>
           ) : null}
 
-          <ProgressBar current={currentIndex + 1} total={studyQueue.length} />
+          <View style={{ marginTop: dsSpacing[16] }}>
+            <ProgressTrack
+              percent={progressPercent}
+              colors={colors}
+              height={8}
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: dsSpacing[8],
+              }}>
+              <Text
+                style={[
+                  dsTypography.caption,
+                  { color: colors.text, fontWeight: '700' },
+                ]}>
+                {progressPercent}% Complete
+              </Text>
+              <Text
+                style={[
+                  dsTypography.caption,
+                  { color: colors.muted, fontWeight: '600' },
+                ]}>
+                {cardsRemaining} {cardsRemaining === 1 ? 'Card' : 'Cards'} Remaining
+              </Text>
+            </View>
+          </View>
 
-          <Text
-            style={[
-              typography.caption,
-              {
-                color: colors.muted,
-                textAlign: 'center',
-                marginTop: spacing.md,
-                fontWeight: '600',
-              },
-            ]}>
-            Card {currentIndex + 1} of {studyQueue.length}
-            {deckProgress
-              ? ` · ${deckProgress.learned}/${deckProgress.total} learned`
-              : ''}
-          </Text>
+          {currentCard ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: dsSpacing[8],
+                marginTop: dsSpacing[12],
+              }}>
+              <Badge
+                label={currentCard.deck}
+                icon="folder"
+                backgroundColor={colors.primarySoft}
+                textColor={colors.primary}
+              />
+              {deckProgress ? (
+                <Badge
+                  label={`${deckProgress.learned}/${deckProgress.total} learned`}
+                  icon="checkmark-circle"
+                  backgroundColor={colors.successSoft}
+                  textColor={colors.success}
+                />
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
+        {/* Flashcard — visual focus */}
         <View
           style={{
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: layout.contentPadding,
+            paddingVertical: dsSpacing[8],
           }}>
           <Flashcard
             key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
+            size="large"
             front={currentCard.front}
             back={currentCard.back}
             deck={currentCard.deck}
@@ -544,14 +565,15 @@ export default function StudyScreen() {
           />
         </View>
 
+        {/* Rating grid — full width 2×2 */}
         <View
           style={{
             paddingHorizontal: layout.contentPadding,
-            paddingTop: spacing.md,
-            paddingBottom: spacing.xl,
-            gap: spacing.sm,
+            paddingTop: dsSpacing[12],
+            paddingBottom: dsSpacing[32],
+            gap: dsSpacing[12],
           }}>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
             <RatingButton
               label="Again"
               icon="close-circle-outline"
@@ -569,7 +591,7 @@ export default function StudyScreen() {
               borderColor={colors.warning + '44'}
             />
           </View>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
             <RatingButton
               label="Good"
               icon="checkmark-circle"

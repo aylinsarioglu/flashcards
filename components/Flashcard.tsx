@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
@@ -26,7 +27,10 @@ type FlashcardProps = {
   exampleTranslation?: string;
   favorite?: boolean;
   learned?: boolean;
+  size?: 'default' | 'large';
 };
+
+const FLIP_DURATION = 300;
 
 export default function Flashcard({
   front,
@@ -36,10 +40,12 @@ export default function Flashcard({
   exampleTranslation,
   favorite = false,
   learned = false,
+  size = 'default',
 }: FlashcardProps) {
   const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
-  const cardWidth = Math.min(width - layout.contentPadding * 2, 400);
+  const isLarge = size === 'large';
+  const cardWidth = Math.min(width - layout.contentPadding * 2, isLarge ? 440 : 400);
 
   const [flipped, setFlipped] = useState(false);
   const isAnimating = useRef(false);
@@ -54,6 +60,16 @@ export default function Flashcard({
   const backRotate = flipAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['180deg', '360deg'],
+  });
+
+  const frontOpacity = flipAnimation.interpolate({
+    inputRange: [0, 0.5, 0.51, 1],
+    outputRange: [1, 1, 0, 0],
+  });
+
+  const backOpacity = flipAnimation.interpolate({
+    inputRange: [0, 0.49, 0.5, 1],
+    outputRange: [0, 0, 1, 1],
   });
 
   useEffect(() => {
@@ -80,7 +96,8 @@ export default function Flashcard({
 
     Animated.timing(flipAnimation, {
       toValue,
-      duration: 350,
+      duration: FLIP_DURATION,
+      easing: Easing.inOut(Easing.cubic),
       useNativeDriver: true,
     }).start(({ finished }) => {
       if (finished) {
@@ -99,16 +116,23 @@ export default function Flashcard({
             styles.card,
             {
               width: cardWidth,
+              minHeight: isLarge ? 420 : 360,
               backgroundColor: colors.card,
               borderColor: colors.borderLight,
               ...getShadow('elevated', isDark),
             },
           ]}>
-          <View style={styles.flipContainer}>
-            <Animated.View
-              style={[
+          <View
+            style={[
+              styles.flipContainer,
+              { minHeight: isLarge ? 372 : 312, perspective: 1200 as const },
+            ]}>
+            <Animated.View              style={[
                 styles.cardFace,
-                { transform: [{ rotateY: frontRotate }] },
+                {
+                  opacity: frontOpacity,
+                  transform: [{ rotateY: frontRotate }],
+                },
               ]}>
               <View
                 style={[
@@ -121,7 +145,12 @@ export default function Flashcard({
               </View>
 
               <View style={styles.contentCenter}>
-                <Text style={[styles.frontText, { color: colors.text }]}>
+                <Text
+                  style={[
+                    styles.frontText,
+                    isLarge && styles.frontTextLarge,
+                    { color: colors.text },
+                  ]}>
                   {front}
                 </Text>
               </View>
@@ -140,7 +169,10 @@ export default function Flashcard({
             <Animated.View
               style={[
                 styles.cardFace,
-                { transform: [{ rotateY: backRotate }] },
+                {
+                  opacity: backOpacity,
+                  transform: [{ rotateY: backRotate }],
+                },
               ]}>
               <View style={styles.backHeader}>
                 <View
@@ -274,20 +306,17 @@ export default function Flashcard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 360,
     borderRadius: cardRadius,
     padding: spacing.lg,
     borderWidth: 1,
   },
   flipContainer: {
     flex: 1,
-    minHeight: 312,
   },
   cardFace: {
     ...StyleSheet.absoluteFill,
     backfaceVisibility: 'hidden',
-  },
-  contentCenter: {
+  },  contentCenter: {
     flex: 1,
     justifyContent: 'center',
     paddingVertical: spacing.md,
@@ -310,6 +339,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 38,
     letterSpacing: -0.4,
+  },
+  frontTextLarge: {
+    fontSize: 34,
+    lineHeight: 42,
+    letterSpacing: -0.5,
   },
   backText: {
     fontSize: 22,

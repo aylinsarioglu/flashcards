@@ -1,11 +1,8 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react';
 import {
   Text,
-  TextInput,
   View,
-  type PressableProps,
   type StyleProp,
-  type TextInputProps,
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
@@ -16,7 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import { FadeInView, PressableScale } from './animations';
+import AppButton from './AppButton';
+import { PressableScale } from './animations';
 
 import {
   cardRadius,
@@ -33,83 +31,6 @@ type ThemedProps = {
   colors: ThemeColors;
   isDark: boolean;
 };
-
-function ButtonLabel({
-  label,
-  icon,
-  color,
-  size = 16,
-}: {
-  label: string;
-  icon?: IconName;
-  color: string;
-  size?: number;
-}) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-      {icon ? <Ionicons name={icon} size={size} color={color} /> : null}
-      <Text style={[typography.button, { color }]}>{label}</Text>
-    </View>
-  );
-}
-
-export function AppCard({
-  children,
-  colors,
-  isDark,
-  style,
-  onPress,
-  accentColor,
-  entranceDelay,
-}: ThemedProps & {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-  onPress?: PressableProps['onPress'];
-  accentColor?: string;
-  entranceDelay?: number;
-}) {
-  const cardStyle: ViewStyle = {
-    backgroundColor: colors.card,
-    borderRadius: cardRadius,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    overflow: 'hidden',
-    ...getShadow('card', isDark),
-  };
-
-  const content = (
-    <>
-      {accentColor ? (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 4,
-            backgroundColor: accentColor,
-          }}
-        />
-      ) : null}
-      {children}
-    </>
-  );
-
-  const card = onPress ? (
-    <PressableScale onPress={onPress} style={[cardStyle, style]}>
-      {content}
-    </PressableScale>
-  ) : (
-    <View style={[cardStyle, style]}>{content}</View>
-  );
-
-  if (entranceDelay !== undefined) {
-    return <FadeInView delay={entranceDelay}>{card}</FadeInView>;
-  }
-
-  return card;
-}
 
 export function PageHeader({
   title,
@@ -325,161 +246,6 @@ export function GoalSegments({
   );
 }
 
-export function PrimaryButton({
-  label,
-  onPress,
-  colors,
-  isDark,
-  style,
-  icon,
-  disabled,
-}: ThemedProps & {
-  label: string;
-  onPress: () => void;
-  style?: StyleProp<ViewStyle>;
-  icon?: IconName;
-  disabled?: boolean;
-}) {
-  return (
-    <PressableScale
-      onPress={onPress}
-      disabled={disabled}
-      style={[
-        {
-          backgroundColor: disabled ? colors.track : colors.primary,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.lg,
-          borderRadius: radius.lg,
-          alignItems: 'center',
-          ...getShadow(disabled ? 'soft' : 'glow', isDark),
-        },
-        style,
-      ]}>
-      <ButtonLabel
-        label={label}
-        icon={icon}
-        color={disabled ? colors.muted : colors.onPrimary}
-      />
-    </PressableScale>
-  );
-}
-
-export function SecondaryButton({
-  label,
-  onPress,
-  colors,
-  isDark,
-  style,
-  icon,
-}: ThemedProps & {
-  label: string;
-  onPress: () => void;
-  style?: StyleProp<ViewStyle>;
-  icon?: IconName;
-}) {
-  return (
-    <PressableScale
-      onPress={onPress}
-      style={[
-        {
-          backgroundColor: colors.surfaceElevated,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.lg,
-          borderRadius: radius.lg,
-          alignItems: 'center',
-          borderWidth: 1.5,
-          borderColor: colors.border,
-          ...getShadow('soft', isDark),
-        },
-        style,
-      ]}>
-      <ButtonLabel label={label} icon={icon} color={colors.text} />
-    </PressableScale>
-  );
-}
-
-export function GhostButton({
-  label,
-  onPress,
-  colors,
-  icon = 'arrow-back',
-}: {
-  label: string;
-  onPress: () => void;
-  colors: ThemeColors;
-  icon?: IconName;
-}) {
-  return (
-    <PressableScale
-      onPress={onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs,
-        backgroundColor: colors.surface,
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.md,
-        borderRadius: radius.full,
-      }}>
-      <Ionicons name={icon} size={16} color={colors.primary} />
-      <Text style={[typography.caption, { color: colors.primary, fontWeight: '700' }]}>
-        {label}
-      </Text>
-    </PressableScale>
-  );
-}
-
-export function TextField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  colors,
-  isDark,
-  multiline,
-  style,
-  ...rest
-}: {
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  colors: ThemeColors;
-  isDark: boolean;
-  multiline?: boolean;
-  style?: StyleProp<TextStyle>;
-} & Omit<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'style'>) {
-  return (
-    <View style={{ marginBottom: spacing.lg }}>
-      <FieldLabel label={label} colors={colors} />
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        multiline={multiline}
-        style={[
-          {
-            borderWidth: 1.5,
-            borderColor: colors.border,
-            borderRadius: radius.lg,
-            paddingHorizontal: spacing.md,
-            paddingVertical: multiline ? spacing.md : 14,
-            fontSize: 16,
-            backgroundColor: colors.surfaceElevated,
-            color: colors.text,
-            minHeight: multiline ? 100 : undefined,
-            textAlignVertical: multiline ? 'top' : 'center',
-            ...getShadow('soft', isDark),
-          },
-          style,
-        ]}
-        {...rest}
-      />
-    </View>
-  );
-}
-
 export function SegmentedControl({
   options,
   value,
@@ -562,12 +328,12 @@ export function RatingButton({
         flex: 1,
         backgroundColor,
         borderRadius: radius.lg,
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.md + 2,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: borderColor ? 1.5 : 0,
         borderColor,
-        minHeight: 56,
+        minHeight: 60,
       }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {icon ? <Ionicons name={icon} size={16} color={textColor} /> : null}
@@ -668,27 +434,6 @@ export function CompletionStat({
   );
 }
 
-export function FieldLabel({
-  label,
-  colors,
-  style,
-}: {
-  label: string;
-  colors: ThemeColors;
-  style?: StyleProp<TextStyle>;
-}) {
-  return (
-    <Text
-      style={[
-        typography.label,
-        { color: colors.muted, marginBottom: spacing.sm },
-        style,
-      ]}>
-      {label}
-    </Text>
-  );
-}
-
 export function IconBadge({
   icon,
   backgroundColor,
@@ -725,7 +470,18 @@ export function ScreenHeader({
         paddingBottom: spacing.sm,
       }}>
       {onBack ? (
-        <GhostButton label="Back" onPress={onBack} colors={colors} />
+        <AppButton
+          title="Back"
+          variant="outline"
+          onPress={onBack}
+          style={{
+            alignSelf: 'flex-start',
+            width: 'auto',
+            minHeight: undefined,
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.md,
+          }}
+        />
       ) : (
         <View style={{ width: 80 }} />
       )}

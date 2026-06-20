@@ -2,22 +2,11 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
+import AppButton from '../../components/AppButton';
+import AppCard from '../../components/AppCard';
 import ScreenContainer from '../../components/ScreenContainer';
-import {
-  AppCard,
-  Badge,
-  IconCircle,
-  PageHeader,
-  PrimaryButton,
-} from '../../components/ui';
-import {
-  cardRadius,
-  getShadow,
-  layout,
-  radius,
-  spacing,
-  typography,
-} from '../../constants/theme';
+import { Badge, IconCircle, PageHeader } from '../../components/ui';
+import { layout, radius, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
 import { useTheme } from '../../storage/ThemeContext';
 import type { Card } from '../../types/card';
@@ -26,7 +15,7 @@ type CardWithFavorite = Card & { favorite?: boolean };
 
 export default function CardsScreen() {
   const { cards, setCards } = useCards();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const learnedCount = cards.filter((card) => card.learned).length;
 
@@ -40,8 +29,6 @@ export default function CardsScreen() {
 
     return (
       <AppCard
-        colors={colors}
-        isDark={isDark}
         style={{ marginBottom: spacing.md }}
         accentColor={card.learned ? colors.success : colors.primary}>
         <View
@@ -114,41 +101,19 @@ export default function CardsScreen() {
         ) : null}
 
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <Pressable
-            onPress={() => router.push(`/edit-card?id=${card.id}`)}
-            style={({ pressed }) => ({
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing.sm,
-              backgroundColor: colors.primary,
-              paddingVertical: spacing.md,
-              borderRadius: radius.lg,
-              opacity: pressed ? 0.9 : 1,
-              ...getShadow('soft', isDark),
-            })}>
-            <Ionicons name="create-outline" size={18} color={colors.onPrimary} />
-            <Text style={[typography.button, { color: colors.onPrimary }]}>Edit</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => handleDelete(card.id)}
-            style={({ pressed }) => ({
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing.sm,
-              backgroundColor: colors.dangerSoft,
-              paddingVertical: spacing.md,
-              borderRadius: radius.lg,
-              borderWidth: 1,
-              borderColor: colors.danger + '33',
-              opacity: pressed ? 0.9 : 1,
-            })}>
-            <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            <Text style={[typography.button, { color: colors.danger }]}>Delete</Text>
-          </Pressable>
+          <View style={{ flex: 1 }}>
+            <AppButton
+              title="Edit"
+              onPress={() => router.push(`/edit-card?id=${card.id}`)}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppButton
+              title="Delete"
+              variant="danger"
+              onPress={() => handleDelete(card.id)}
+            />
+          </View>
         </View>
       </AppCard>
     );
@@ -181,32 +146,14 @@ export default function CardsScreen() {
               gap: spacing.sm,
               marginBottom: spacing.md,
             }}>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.card,
-                borderRadius: cardRadius,
-                padding: spacing.md,
-                borderWidth: 1,
-                borderColor: colors.borderLight,
-                ...getShadow('soft', isDark),
-              }}>
+            <AppCard style={{ flex: 1, padding: spacing.md }}>
               <Text style={[typography.caption, { color: colors.muted }]}>Total</Text>
               <Text style={[typography.title, { color: colors.text }]}>{cards.length}</Text>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.card,
-                borderRadius: cardRadius,
-                padding: spacing.md,
-                borderWidth: 1,
-                borderColor: colors.borderLight,
-                ...getShadow('soft', isDark),
-              }}>
+            </AppCard>
+            <AppCard style={{ flex: 1, padding: spacing.md }}>
               <Text style={[typography.caption, { color: colors.muted }]}>Learned</Text>
               <Text style={[typography.title, { color: colors.success }]}>{learnedCount}</Text>
-            </View>
+            </AppCard>
           </View>
         ) : null}
       </View>
@@ -221,7 +168,7 @@ export default function CardsScreen() {
         }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <AppCard colors={colors} isDark={isDark} style={{ alignItems: 'center' }}>
+          <AppCard style={{ alignItems: 'center' }}>
             <IconCircle
               icon="albums-outline"
               backgroundColor={colors.primarySoft}
@@ -247,14 +194,7 @@ export default function CardsScreen() {
               ]}>
               Create your first flashcard and start building your library.
             </Text>
-            <PrimaryButton
-              label="Create Card"
-              icon="add"
-              onPress={() => router.push('/add-card')}
-              colors={colors}
-              isDark={isDark}
-              style={{ width: '100%' }}
-            />
+            <AppButton title="Create Card" onPress={() => router.push('/add-card')} />
           </AppCard>
         }
       />
