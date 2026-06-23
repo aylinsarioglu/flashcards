@@ -17,7 +17,7 @@ import {
 } from '../../components/ui';
 import { spacing as dsSpacing } from '../../constants/spacing';
 import { typography as dsTypography } from '../../constants/typography';
-import { layout, spacing, typography } from '../../constants/theme';
+import { layout, spacing, typography, getShadow } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
 import { useTheme } from '../../storage/ThemeContext';
 import type { Card } from '../../types/card';
@@ -188,8 +188,6 @@ export default function StudyScreen() {
   const currentCard = studyQueue[currentIndex];
   const currentCardWithFavorite = currentCard as CardWithFavorite | undefined;
   const totalAnswers = goodCount + againCount;
-  const sessionAccuracy =
-    totalAnswers === 0 ? null : Math.round((goodCount / totalAnswers) * 100);
   const accuracyPercent =
     totalAnswers === 0
       ? 100
@@ -258,8 +256,6 @@ export default function StudyScreen() {
       params: { mode: nextMode },
     });
   }
-
-  const cardsRemaining = Math.max(studyQueue.length - currentIndex, 0);
 
   if (filteredStudyCards.length === 0) {
     return (
@@ -335,53 +331,44 @@ export default function StudyScreen() {
     <ScreenContainer>
       <View style={{ flex: 1 }}>
         <FadeInView delay={0}>
-        <View
-          style={{
-            paddingHorizontal: layout.contentPadding,
-            paddingTop: dsSpacing[16],
-            paddingBottom: dsSpacing[8],
-          }}>
-          {deck ? (
-            <PressableScale
-              onPress={() => router.replace('/')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                alignSelf: 'flex-start',
-                gap: dsSpacing[4],
-                marginBottom: dsSpacing[12],
-                paddingVertical: dsSpacing[4],
-                paddingRight: dsSpacing[8],
-              }}>
-              <Ionicons name="chevron-back" size={22} color={colors.primary} />
-              <Text
-                style={[
-                  dsTypography.subtitle,
-                  { color: colors.primary, fontWeight: '700' },
-                ]}>
-                Back
-              </Text>
-            </PressableScale>
-          ) : null}
+          <View
+            style={{
+              paddingHorizontal: layout.contentPadding,
+              paddingTop: dsSpacing[12],
+              paddingBottom: dsSpacing[8],
+            }}>
+            {deck ? (
+              <PressableScale
+                onPress={() => router.replace('/')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  alignSelf: 'flex-start',
+                  gap: dsSpacing[4],
+                  marginBottom: dsSpacing[8],
+                  paddingVertical: dsSpacing[4],
+                  paddingRight: dsSpacing[8],
+                }}>
+                <Ionicons name="chevron-back" size={22} color={colors.primary} />
+                <Text
+                  style={[
+                    dsTypography.subtitle,
+                    { color: colors.primary, fontWeight: '700' },
+                  ]}>
+                  Back
+                </Text>
+              </PressableScale>
+            ) : null}
 
-          <Text
-            style={[
-              dsTypography.heading,
-              { color: colors.text, fontSize: 28, marginBottom: dsSpacing[4] },
-            ]}>
-            Study Session
-          </Text>
-
-          {!deck ? (
-            <>
-              <Text
-                style={[
-                  dsTypography.body,
-                  { color: colors.muted, marginBottom: dsSpacing[12] },
-                ]}>
-                {getSessionTitle(mode, deck)}
-              </Text>
-              <View style={{ marginBottom: dsSpacing[16] }}>
+            {!deck ? (
+              <View style={{ marginBottom: dsSpacing[12] }}>
+                <Text
+                  style={[
+                    dsTypography.caption,
+                    { color: colors.muted, marginBottom: dsSpacing[8], fontWeight: '600' },
+                  ]}>
+                  {getSessionTitle(mode, deck)}
+                </Text>
                 <SegmentedControl
                   colors={colors}
                   value={mode ?? 'all'}
@@ -393,105 +380,107 @@ export default function StudyScreen() {
                   ]}
                 />
               </View>
-            </>
-          ) : null}
+            ) : null}
 
-          {currentCard ? (
-            <StudySessionHeader
-              deckName={currentCard.deck}
-              current={currentIndex + 1}
-              total={studyQueue.length}
-              cardsRemaining={cardsRemaining}
-              accuracy={sessionAccuracy}
-              colors={colors}
-            />
-          ) : null}
-        </View>
+            {currentCard ? (
+              <StudySessionHeader
+                deckName={currentCard.deck}
+                current={currentIndex + 1}
+                total={studyQueue.length}
+                colors={colors}
+              />
+            ) : null}
+          </View>
         </FadeInView>
 
-        <FadeInView delay={motion.stagger}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: layout.contentPadding,
-            paddingVertical: dsSpacing[16],
-            minHeight: 320,
-          }}>
-          <Flashcard
-            key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
-            size="large"
-            showDeckBadge={false}
-            front={currentCard.front}
-            back={currentCard.back}
-            deck={currentCard.deck}
-            example={currentCard.example}
-            exampleTranslation={currentCard.exampleTranslation}
-            favorite={currentCardWithFavorite?.favorite}
-            learned={currentCard.learned}
-          />
-        </View>
+        <FadeInView delay={motion.stagger} style={{ flex: 1 }}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: layout.contentPadding,
+            }}>
+            <Flashcard
+              key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
+              size="study"
+              showDeckBadge={false}
+              front={currentCard.front}
+              back={currentCard.back}
+              deck={currentCard.deck}
+              example={currentCard.example}
+              exampleTranslation={currentCard.exampleTranslation}
+              favorite={currentCardWithFavorite?.favorite}
+              learned={currentCard.learned}
+            />
+            <Text
+              style={[
+                dsTypography.caption,
+                {
+                  color: colors.muted,
+                  marginTop: dsSpacing[12],
+                  fontWeight: '600',
+                },
+              ]}>
+              Tap card to flip
+            </Text>
+          </View>
         </FadeInView>
 
         <FadeInView delay={motion.stagger * 2}>
-        <View
-          style={{
-            paddingHorizontal: layout.contentPadding,
-            paddingTop: dsSpacing[8],
-            paddingBottom: dsSpacing[32],
-            gap: dsSpacing[12],
-          }}>
-          <Text
-            style={[
-              dsTypography.caption,
-              {
-                color: colors.muted,
-                textAlign: 'center',
-                marginBottom: dsSpacing[4],
-                fontWeight: '600',
-                letterSpacing: 0.4,
-                textTransform: 'uppercase',
-              },
-            ]}>
-            How well did you know it?
-          </Text>
-          <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
-            <RatingButton
-              label="Again"
-              icon="close-circle-outline"
-              onPress={handleAgain}
-              backgroundColor={colors.surfaceElevated}
-              textColor={colors.text}
-              borderColor={colors.border}
-            />
-            <RatingButton
-              label="Hard"
-              icon="remove-circle-outline"
-              onPress={handleHard}
-              backgroundColor={colors.warningSoft}
-              textColor={colors.warning}
-              borderColor={colors.warning + '44'}
-            />
+          <View
+            style={{
+              paddingHorizontal: layout.contentPadding,
+              paddingTop: dsSpacing[16],
+              paddingBottom: dsSpacing[24],
+              backgroundColor: colors.card,
+              borderTopLeftRadius: dsSpacing[24],
+              borderTopRightRadius: dsSpacing[24],
+              borderWidth: 1,
+              borderBottomWidth: 0,
+              borderColor: colors.borderLight,
+              ...getShadow('soft', isDark),
+            }}>
+            <View style={{ flexDirection: 'row', gap: dsSpacing[12], marginBottom: dsSpacing[12] }}>
+              <RatingButton
+                label="Again"
+                icon="close-circle-outline"
+                onPress={handleAgain}
+                backgroundColor={colors.surfaceElevated}
+                textColor={colors.text}
+                borderColor={colors.border}
+                tall
+              />
+              <RatingButton
+                label="Hard"
+                icon="remove-circle-outline"
+                onPress={handleHard}
+                backgroundColor={colors.warningSoft}
+                textColor={colors.warning}
+                borderColor={colors.warning + '44'}
+                tall
+              />
+            </View>
+            <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
+              <RatingButton
+                label="Good"
+                icon="checkmark-circle"
+                onPress={handleGood}
+                backgroundColor={colors.primary}
+                textColor={colors.onPrimary}
+                tall
+              />
+              <RatingButton
+                label="Easy"
+                icon="flash"
+                onPress={handleEasy}
+                backgroundColor={colors.successSoft}
+                textColor={colors.success}
+                borderColor={colors.success + '44'}
+                tall
+              />
+            </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
-            <RatingButton
-              label="Good"
-              icon="checkmark-circle"
-              onPress={handleGood}
-              backgroundColor={colors.primary}
-              textColor={colors.onPrimary}
-            />
-            <RatingButton
-              label="Easy"
-              icon="flash"
-              onPress={handleEasy}
-              backgroundColor={colors.successSoft}
-              textColor={colors.success}
-              borderColor={colors.success + '44'}
-            />
-          </View>
-        </View>
         </FadeInView>
       </View>
     </ScreenContainer>

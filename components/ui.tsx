@@ -316,6 +316,7 @@ export function RatingButton({
   textColor,
   borderColor,
   icon,
+  tall = false,
 }: {
   label: string;
   onPress: () => void;
@@ -323,6 +324,7 @@ export function RatingButton({
   textColor: string;
   borderColor?: string;
   icon?: IconName;
+  tall?: boolean;
 }) {
   return (
     <PressableScale
@@ -331,16 +333,16 @@ export function RatingButton({
         flex: 1,
         backgroundColor,
         borderRadius: radius.lg,
-        paddingVertical: spacing.md + 2,
+        paddingVertical: tall ? spacing.md + 4 : spacing.md + 2,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: borderColor ? 1.5 : 0,
         borderColor,
-        minHeight: 60,
+        minHeight: tall ? 64 : 60,
       }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        {icon ? <Ionicons name={icon} size={16} color={textColor} /> : null}
-        <Text style={[typography.button, { color: textColor, fontSize: 15 }]}>
+        {icon ? <Ionicons name={icon} size={tall ? 18 : 16} color={textColor} /> : null}
+        <Text style={[typography.button, { color: textColor, fontSize: tall ? 16 : 15 }]}>
           {label}
         </Text>
       </View>

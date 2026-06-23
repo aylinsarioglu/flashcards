@@ -28,6 +28,14 @@ export default function RootLayout() {
                 animation: 'slide_from_bottom',
               }}
             />
+            <Stack.Screen
+              name="statistics"
+              options={{
+                headerShown: false,
+                animation: 'fade',
+                animationDuration: 240,
+              }}
+            />
           </Stack>
         </View>
       </CardsProvider>

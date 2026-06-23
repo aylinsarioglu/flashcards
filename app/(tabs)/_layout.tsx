@@ -15,8 +15,10 @@ import { useTheme } from '../../storage/ThemeContext';
 
 type TabIconName = keyof typeof Ionicons.glyphMap;
 
+type TabRouteName = 'index' | 'study' | 'add-card' | 'cards' | 'settings';
+
 type TabConfig = {
-  name: 'index' | 'study' | 'add-card' | 'cards' | 'statistics' | 'settings';
+  name: TabRouteName;
   title: string;
   icon: TabIconName;
 };
@@ -24,9 +26,8 @@ type TabConfig = {
 const TABS: TabConfig[] = [
   { name: 'index', title: 'Home', icon: 'home' },
   { name: 'study', title: 'Study', icon: 'book' },
-  { name: 'add-card', title: 'Add', icon: 'add-circle' },
-  { name: 'cards', title: 'Cards', icon: 'albums' },
-  { name: 'statistics', title: 'Stats', icon: 'stats-chart' },
+  { name: 'add-card', title: 'Add Card', icon: 'add-circle' },
+  { name: 'cards', title: 'Manage Cards', icon: 'albums' },
   { name: 'settings', title: 'Settings', icon: 'settings' },
 ];
 
@@ -49,20 +50,21 @@ function TabBarIcon({
   colors: ThemeColors;
 }) {
   const iconColor = typeof color === 'string' ? color : mutedColor;
+  const iconSize = Platform.OS === 'web' ? size : size - 1;
 
   return (
     <View
       style={{
         alignItems: 'center',
         justifyContent: 'center',
-        width: Platform.OS === 'web' ? 48 : 52,
+        width: Platform.OS === 'web' ? 52 : 48,
         height: 36,
       }}>
       {focused ? (
         <View
           style={{
             position: 'absolute',
-            width: Platform.OS === 'web' ? 48 : 52,
+            width: Platform.OS === 'web' ? 52 : 48,
             height: 36,
             borderRadius: 18,
             backgroundColor: colors.primarySoft,
@@ -71,7 +73,7 @@ function TabBarIcon({
       ) : null}
       <Ionicons
         name={focused ? name : (`${name}-outline` as TabIconName)}
-        size={size}
+        size={iconSize}
         color={iconColor}
       />
     </View>
@@ -86,16 +88,34 @@ function getTabBarHorizontalInset(screenWidth: number) {
   return TAB_BAR_INSET;
 }
 
+function getTabLabelFontSize(screenWidth: number) {
+  if (Platform.OS === 'web') {
+    return screenWidth < 640 ? 10 : 11;
+  }
+
+  return screenWidth < 380 ? 9 : 10;
+}
+
+function getTabLabelMaxWidth(screenWidth: number) {
+  if (Platform.OS === 'web') {
+    return screenWidth < 640 ? 72 : 88;
+  }
+
+  return screenWidth < 380 ? 56 : 68;
+}
+
 export default function TabsLayout() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
   const bottomInset = Math.max(insets.bottom, dsSpacing[8]);
-  const tabBarBodyHeight = 62;
+  const tabBarBodyHeight = Platform.OS === 'web' ? 64 : 62;
   const tabBarHeight = tabBarBodyHeight + bottomInset;
   const contentBottomPadding = tabBarHeight + dsSpacing[24];
   const horizontalInset = getTabBarHorizontalInset(screenWidth);
+  const labelFontSize = getTabLabelFontSize(screenWidth);
+  const labelMaxWidth = getTabLabelMaxWidth(screenWidth);
 
   return (
     <Tabs
@@ -125,6 +145,7 @@ export default function TabsLayout() {
           height: tabBarBodyHeight,
           paddingTop: dsSpacing[8],
           paddingBottom: dsSpacing[8],
+          paddingHorizontal: Platform.OS === 'web' ? dsSpacing[8] : dsSpacing[4],
           backgroundColor: colors.card,
           borderTopWidth: 0,
           borderRadius: cardRadius,
@@ -135,27 +156,32 @@ export default function TabsLayout() {
           ...(Platform.OS === 'ios'
             ? getShadow('elevated', isDark)
             : Platform.OS === 'web'
-              ? { boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.35)' : '0 12px 40px rgba(26,29,46,0.12)' }
+              ? {
+                  boxShadow: isDark
+                    ? '0 12px 40px rgba(0,0,0,0.35)'
+                    : '0 12px 40px rgba(26,29,46,0.12)',
+                }
               : { elevation: 12 }),
         },
         tabBarLabel: ({ focused, color, children }) => (
           <Text
             numberOfLines={1}
+            ellipsizeMode="tail"
             style={{
-              fontSize: Platform.OS === 'web' ? 11 : 10,
+              fontSize: labelFontSize,
               fontWeight: focused ? '700' : '600',
               color,
               marginTop: 2,
-              maxWidth: Platform.OS === 'web' ? 64 : 72,
+              maxWidth: labelMaxWidth,
               textAlign: 'center',
             }}>
             {children}
           </Text>
         ),
         tabBarItemStyle: {
+          flex: 1,
           paddingVertical: dsSpacing[4],
-          minWidth: Platform.OS === 'web' ? 56 : undefined,
-          paddingHorizontal: Platform.OS === 'web' ? dsSpacing[4] : undefined,
+          minWidth: Platform.OS === 'web' ? 64 : undefined,
         },
       }}>
       {TABS.map(({ name, title, icon }) => (
@@ -164,6 +190,7 @@ export default function TabsLayout() {
           name={name}
           options={{
             title,
+            tabBarAccessibilityLabel: title,
             tabBarIcon: ({ color, size, focused }) => (
               <TabBarIcon
                 name={icon}

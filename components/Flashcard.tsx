@@ -28,7 +28,7 @@ type FlashcardProps = {
   exampleTranslation?: string;
   favorite?: boolean;
   learned?: boolean;
-  size?: 'default' | 'large';
+  size?: 'default' | 'large' | 'study';
   showDeckBadge?: boolean;
 };
 
@@ -46,9 +46,19 @@ export default function Flashcard({
   showDeckBadge = true,
 }: FlashcardProps) {
   const { colors, isDark } = useTheme();
-  const { width } = useWindowDimensions();
-  const isLarge = size === 'large';
-  const cardWidth = Math.min(width - layout.contentPadding * 2, isLarge ? 440 : 400);
+  const { width, height } = useWindowDimensions();
+  const isStudy = size === 'study';
+  const isLarge = size === 'large' || isStudy;
+  const cardWidth = Math.min(
+    width - layout.contentPadding * 2,
+    isStudy ? 500 : isLarge ? 440 : 400,
+  );
+  const cardMinHeight = isStudy
+    ? Math.min(Math.max(height * 0.48, 380), 520)
+    : isLarge
+      ? 420
+      : 360;
+  const flipMinHeight = cardMinHeight - 48;
 
   const [flipped, setFlipped] = useState(false);
   const isAnimating = useRef(false);
@@ -149,7 +159,7 @@ export default function Flashcard({
             styles.card,
             {
               width: cardWidth,
-              minHeight: isLarge ? 420 : 360,
+              minHeight: cardMinHeight,
               backgroundColor: colors.card,
               borderColor: colors.borderLight,
               ...getShadow('elevated', isDark),
@@ -158,7 +168,7 @@ export default function Flashcard({
           <View
             style={[
               styles.flipContainer,
-              { minHeight: isLarge ? 372 : 312 },
+              { minHeight: flipMinHeight },
             ]}>
             <Animated.View
               style={[
@@ -184,7 +194,8 @@ export default function Flashcard({
                 <Text
                   style={[
                     styles.frontText,
-                    isLarge && styles.frontTextLarge,
+                    isStudy && styles.frontTextStudy,
+                    isLarge && !isStudy && styles.frontTextLarge,
                     { color: colors.text },
                   ]}>
                   {front}
@@ -356,7 +367,8 @@ const styles = StyleSheet.create({
   cardFace: {
     ...StyleSheet.absoluteFill,
     backfaceVisibility: 'hidden',
-  },  contentCenter: {
+  },
+  contentCenter: {
     flex: 1,
     justifyContent: 'center',
     paddingVertical: spacing.md,
@@ -384,6 +396,11 @@ const styles = StyleSheet.create({
     fontSize: 34,
     lineHeight: 42,
     letterSpacing: -0.5,
+  },
+  frontTextStudy: {
+    fontSize: 36,
+    lineHeight: 44,
+    letterSpacing: -0.6,
   },
   backText: {
     fontSize: 22,

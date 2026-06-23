@@ -398,7 +398,7 @@ export default function HomeScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <AppButton
-                title="Cards"
+                title="Manage Cards"
                 variant="outline"
                 onPress={() => router.push('/cards')}
               />

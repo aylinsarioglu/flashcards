@@ -7,4 +7,5 @@ export type Card = {
   category: string;
   deck: string;
   learned: boolean;
+  favorite?: boolean;
 };
