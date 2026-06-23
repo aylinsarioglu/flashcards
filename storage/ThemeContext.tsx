@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import {
@@ -12,10 +11,13 @@ import {
 import { useColorScheme } from 'react-native';
 
 import { darkTheme, lightTheme, type ThemeColors } from '../constants/theme';
+import {
+  loadThemeMode,
+  saveThemeMode,
+  type ThemeMode,
+} from './settingsStorage';
 
-const THEME_STORAGE_KEY = 'FLASHCARDS_THEME';
-
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type { ThemeMode };
 
 type ThemeContextValue = {
   themeMode: ThemeMode;
@@ -30,10 +32,6 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 type ThemeProviderProps = {
   children: ReactNode;
 };
-
-function isThemeMode(value: string | null): value is ThemeMode {
-  return value === 'light' || value === 'dark' || value === 'system';
-}
 
 function resolveIsDark(
   themeMode: ThemeMode,
@@ -77,17 +75,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const colors = isDark ? darkTheme : lightTheme;
 
   useEffect(() => {
-    AsyncStorage.getItem(THEME_STORAGE_KEY).then((stored) => {
-      if (isThemeMode(stored)) {
-        setThemeModeState(stored);
-      } else if (stored === 'dark') {
-        setThemeModeState('dark');
-      } else if (stored === 'light') {
-        setThemeModeState('light');
-      } else {
-        setThemeModeState('system');
-      }
-
+    loadThemeMode().then((mode) => {
+      setThemeModeState(mode);
       setIsLoaded(true);
     });
   }, []);
@@ -97,7 +86,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       return;
     }
 
-    AsyncStorage.setItem(THEME_STORAGE_KEY, themeMode);
+    void saveThemeMode(themeMode);
   }, [themeMode, isLoaded]);
 
   function setThemeMode(mode: ThemeMode) {

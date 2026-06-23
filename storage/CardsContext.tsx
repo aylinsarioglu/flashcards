@@ -27,12 +27,27 @@ import {
 } from './continueLearningStorage';
 import { loadCards, saveCards } from './cardsStorage';
 import type { AppBackup } from './backupStorage';
+import {
+  DEFAULT_STUDY_STATS,
+  addStudyTime,
+  clearStudyStatsStorage,
+  getAccuracyPercent,
+  loadStudyStats,
+  recordAgainReview,
+  recordGoodReview,
+  recordStudySessionComplete,
+  saveStudyStats,
+  type StudyStats,
+} from './studyStatsStorage';
 
 const DAILY_PROGRESS_KEY = 'FLASHCARDS_DAILY_PROGRESS';
 const STREAK_KEY = 'FLASHCARDS_STREAK';
 const ACHIEVEMENTS_KEY = 'FLASHCARDS_ACHIEVEMENTS';
-const DAILY_GOAL_KEY = 'FLASHCARDS_DAILY_GOAL';
-const DEFAULT_DAILY_GOAL = 10;
+import {
+  DEFAULT_DAILY_GOAL,
+  loadDailyGoal,
+  saveDailyGoal,
+} from './settingsStorage';
 
 export type { Achievements };
 export { ACHIEVEMENT_DEFINITIONS };
@@ -68,6 +83,13 @@ type CardsContextValue = {
   resetProgress: () => void;
   exportBackupData: () => AppBackup;
   restoreBackupData: (backup: AppBackup) => Promise<void>;
+  studyStats: StudyStats;
+  isStudyStatsLoaded: boolean;
+  recordGoodReview: () => void;
+  recordAgainReview: () => void;
+  addStudySessionTime: (minutes: number) => void;
+  recordStudySessionComplete: () => void;
+  getStudyAccuracy: () => number | null;
 };
 
 export type { ContinueLearningState };
@@ -137,6 +159,8 @@ export function CardsProvider({ children }: CardsProviderProps) {
   const [isDailyGoalLoaded, setIsDailyGoalLoaded] = useState(false);
   const [isContinueLearningLoaded, setIsContinueLearningLoaded] =
     useState(false);
+  const [studyStats, setStudyStats] = useState<StudyStats>(DEFAULT_STUDY_STATS);
+  const [isStudyStatsLoaded, setIsStudyStatsLoaded] = useState(false);
   const progressDateRef = useRef(getTodayKey());
   const streakStateRef = useRef<StoredStreak>({
     currentStreak: 0,
@@ -188,12 +212,8 @@ export function CardsProvider({ children }: CardsProviderProps) {
   }, []);
 
   useEffect(() => {
-    AsyncStorage.getItem(DAILY_GOAL_KEY).then((data) => {
-      const stored = data ? Number.parseInt(data, 10) : DEFAULT_DAILY_GOAL;
-
-      setDailyGoalState(
-        Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_DAILY_GOAL,
-      );
+    loadDailyGoal().then((goal) => {
+      setDailyGoalState(goal);
       setIsDailyGoalLoaded(true);
     });
   }, []);
@@ -204,6 +224,21 @@ export function CardsProvider({ children }: CardsProviderProps) {
       setIsContinueLearningLoaded(true);
     });
   }, []);
+
+  useEffect(() => {
+    loadStudyStats().then((stored) => {
+      setStudyStats(stored);
+      setIsStudyStatsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isStudyStatsLoaded) {
+      return;
+    }
+
+    saveStudyStats(studyStats);
+  }, [studyStats, isStudyStatsLoaded]);
 
   useEffect(() => {
     if (!isLoaded || initialCardCountRef.current !== null) {
@@ -274,7 +309,7 @@ export function CardsProvider({ children }: CardsProviderProps) {
       return;
     }
 
-    AsyncStorage.setItem(DAILY_GOAL_KEY, String(dailyGoal));
+    void saveDailyGoal(dailyGoal);
   }, [dailyGoal, isDailyGoalLoaded]);
 
   useEffect(() => {
@@ -358,6 +393,29 @@ export function CardsProvider({ children }: CardsProviderProps) {
     setCards((current) =>
       current.map((card) => ({ ...card, learned: false })),
     );
+
+    setStudyStats(DEFAULT_STUDY_STATS);
+    void clearStudyStatsStorage();
+  }
+
+  function recordGoodReviewRating() {
+    setStudyStats((current) => recordGoodReview(current));
+  }
+
+  function recordAgainReviewRating() {
+    setStudyStats((current) => recordAgainReview(current));
+  }
+
+  function addStudySessionTime(minutes: number) {
+    setStudyStats((current) => addStudyTime(current, minutes));
+  }
+
+  function recordStudySessionCompleteRating() {
+    setStudyStats((current) => recordStudySessionComplete(current));
+  }
+
+  function getStudyAccuracy() {
+    return getAccuracyPercent(studyStats);
   }
 
   function exportBackupData(): AppBackup {
@@ -397,7 +455,7 @@ export function CardsProvider({ children }: CardsProviderProps) {
     );
 
     setDailyGoalState(backup.dailyGoal);
-    await AsyncStorage.setItem(DAILY_GOAL_KEY, String(backup.dailyGoal));
+    await saveDailyGoal(backup.dailyGoal);
 
     setCards(backup.cards);
     await saveCards(backup.cards);
@@ -430,6 +488,13 @@ export function CardsProvider({ children }: CardsProviderProps) {
         resetProgress,
         exportBackupData,
         restoreBackupData,
+        studyStats,
+        isStudyStatsLoaded,
+        recordGoodReview: recordGoodReviewRating,
+        recordAgainReview: recordAgainReviewRating,
+        addStudySessionTime,
+        recordStudySessionComplete: recordStudySessionCompleteRating,
+        getStudyAccuracy,
       }}>
       {children}
     </CardsContext.Provider>

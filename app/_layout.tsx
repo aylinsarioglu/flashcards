@@ -1,5 +1,6 @@
 import 'react-native-reanimated';
 import { Stack } from 'expo-router';
+import { Platform, View } from 'react-native';
 
 import { CardsProvider } from '../storage/CardsContext';
 import { ThemeProvider } from '../storage/ThemeContext';
@@ -8,22 +9,27 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <CardsProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'fade_from_bottom',
-            animationDuration: 280,
-          }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="edit-card"
-            options={{
+        <View style={{ flex: 1, ...(Platform.OS === 'web' ? { minHeight: '100vh' as unknown as number } : {}) }}>
+          <Stack
+            screenOptions={{
               headerShown: false,
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-        </Stack>
+              animation: 'fade',
+              animationDuration: 240,
+            }}>
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, animation: 'fade' }}
+            />
+            <Stack.Screen
+              name="edit-card"
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+          </Stack>
+        </View>
       </CardsProvider>
     </ThemeProvider>
   );

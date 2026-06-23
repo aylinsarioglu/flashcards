@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { layout } from '../constants/theme';
+import { motion } from './animations';
 import { useTheme } from '../storage/ThemeContext';
 
 type ScreenContainerProps = {
@@ -20,7 +21,7 @@ export default function ScreenContainer({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <Animated.View
-        entering={FadeIn.duration(240)}
+        entering={FadeIn.duration(motion.duration)}
         style={[
           {
             width: '100%',

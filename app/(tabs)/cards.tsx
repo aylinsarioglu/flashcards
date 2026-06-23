@@ -1,10 +1,13 @@
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
+import CardSearch from '../../components/CardSearch';
 import ScreenContainer from '../../components/ScreenContainer';
+import { FadeInView, motion, PressableScale } from '../../components/animations';
 import { Badge, IconCircle, PageHeader } from '../../components/ui';
 import { layout, radius, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
@@ -16,8 +19,26 @@ type CardWithFavorite = Card & { favorite?: boolean };
 export default function CardsScreen() {
   const { cards, setCards } = useCards();
   const { colors } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const learnedCount = cards.filter((card) => card.learned).length;
+
+  const displayedCards = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return cards;
+    }
+
+    return cards.filter((card) => {
+      const haystack = [card.front, card.back, card.deck, card.example, card.category]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(query);
+    });
+  }, [cards, searchQuery]);
 
   function handleDelete(id: string) {
     setCards(cards.filter((card) => card.id !== id));
@@ -54,22 +75,22 @@ export default function CardsScreen() {
             />
           </View>
 
-          <Pressable
-            style={({ pressed }) => ({
+          <PressableScale
+            scaleTo={motion.cardPressScale}
+            style={{
               width: 44,
               height: 44,
               borderRadius: radius.full,
               backgroundColor: isFavorite ? colors.warningSoft : colors.surface,
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: pressed ? 0.85 : 1,
-            })}>
+            }}>
             <Ionicons
               name={isFavorite ? 'heart' : 'heart-outline'}
               size={22}
               color={isFavorite ? colors.warning : colors.muted}
             />
-          </Pressable>
+          </PressableScale>
         </View>
 
         <View style={{ marginBottom: spacing.md }}>
@@ -122,44 +143,57 @@ export default function CardsScreen() {
   return (
     <ScreenContainer>
       <View style={{ paddingHorizontal: layout.contentPadding, paddingTop: spacing.lg }}>
-        <PageHeader
-          title="Manage Cards"
-          subtitle={`${cards.length} cards · ${learnedCount} learned`}
-          colors={colors}
-          right={
-            <Pressable
-              onPress={() => router.push('/add-card')}
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <IconCircle
-                icon="add"
-                backgroundColor={colors.primarySoft}
-                iconColor={colors.primary}
-              />
-            </Pressable>
-          }
-        />
+        <FadeInView delay={0}>
+          <PageHeader
+            title="Manage Cards"
+            subtitle={`${cards.length} cards · ${learnedCount} learned`}
+            colors={colors}
+            right={
+              <PressableScale
+                onPress={() => router.push('/add-card')}
+                scaleTo={motion.cardPressScale}>
+                <IconCircle
+                  icon="add"
+                  backgroundColor={colors.primarySoft}
+                  iconColor={colors.primary}
+                />
+              </PressableScale>
+            }
+          />
+        </FadeInView>
 
         {cards.length > 0 ? (
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: spacing.sm,
-              marginBottom: spacing.md,
-            }}>
-            <AppCard style={{ flex: 1, padding: spacing.md }}>
-              <Text style={[typography.caption, { color: colors.muted }]}>Total</Text>
-              <Text style={[typography.title, { color: colors.text }]}>{cards.length}</Text>
-            </AppCard>
-            <AppCard style={{ flex: 1, padding: spacing.md }}>
-              <Text style={[typography.caption, { color: colors.muted }]}>Learned</Text>
-              <Text style={[typography.title, { color: colors.success }]}>{learnedCount}</Text>
-            </AppCard>
-          </View>
+          <FadeInView delay={motion.stagger}>
+            <View
+              style={{
+                flexDirection: 'row',
+                gap: spacing.sm,
+                marginBottom: spacing.md,
+              }}>
+              <AppCard style={{ flex: 1, padding: spacing.md }}>
+                <Text style={[typography.caption, { color: colors.muted }]}>Total</Text>
+                <Text style={[typography.title, { color: colors.text }]}>{cards.length}</Text>
+              </AppCard>
+              <AppCard style={{ flex: 1, padding: spacing.md }}>
+                <Text style={[typography.caption, { color: colors.muted }]}>Learned</Text>
+                <Text style={[typography.title, { color: colors.success }]}>{learnedCount}</Text>
+              </AppCard>
+            </View>
+          </FadeInView>
         ) : null}
+
+        <FadeInView delay={motion.stagger * 2}>
+          <CardSearch
+            cards={cards}
+            onSelectCard={(card) => router.push(`/edit-card?id=${card.id}`)}
+            onQueryChange={setSearchQuery}
+            style={{ marginBottom: spacing.md }}
+          />
+        </FadeInView>
       </View>
 
       <FlatList
-        data={cards}
+        data={displayedCards}
         keyExtractor={(item) => item.id}
         renderItem={renderCard}
         contentContainerStyle={{

@@ -17,6 +17,7 @@ import {
   spacing,
   typography,
 } from '../constants/theme';
+import { motion } from './animations';
 import { useTheme } from '../storage/ThemeContext';
 
 type FlashcardProps = {
@@ -28,9 +29,10 @@ type FlashcardProps = {
   favorite?: boolean;
   learned?: boolean;
   size?: 'default' | 'large';
+  showDeckBadge?: boolean;
 };
 
-const FLIP_DURATION = 300;
+const FLIP_DURATION = motion.flipDuration;
 
 export default function Flashcard({
   front,
@@ -41,6 +43,7 @@ export default function Flashcard({
   favorite = false,
   learned = false,
   size = 'default',
+  showDeckBadge = true,
 }: FlashcardProps) {
   const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
@@ -84,6 +87,32 @@ export default function Flashcard({
     }).start();
   }, [front, back, deck, flipAnimation, scaleAnimation]);
 
+  function handlePressIn() {
+    if (isAnimating.current) {
+      return;
+    }
+
+    Animated.timing(scaleAnimation, {
+      toValue: motion.cardPressScale,
+      duration: 120,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function handlePressOut() {
+    if (isAnimating.current) {
+      return;
+    }
+
+    Animated.spring(scaleAnimation, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  }
+
   function handlePress() {
     if (isAnimating.current) {
       return;
@@ -110,7 +139,11 @@ export default function Flashcard({
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnimation }] }}>
-      <Pressable onPress={handlePress} style={{ width: cardWidth }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={{ width: cardWidth }}>
         <View
           style={[
             styles.card,
@@ -127,24 +160,27 @@ export default function Flashcard({
               styles.flipContainer,
               { minHeight: isLarge ? 372 : 312 },
             ]}>
-            <Animated.View              style={[
+            <Animated.View
+              style={[
                 styles.cardFace,
                 {
                   opacity: frontOpacity,
                   transform: [{ rotateY: frontRotate }],
                 },
               ]}>
-              <View
-                style={[
-                  styles.deckBadge,
-                  { backgroundColor: colors.primarySoft },
-                ]}>
-                <Text style={[styles.deckBadgeText, { color: colors.primary }]}>
-                  {deck}
-                </Text>
-              </View>
+              {showDeckBadge ? (
+                <View
+                  style={[
+                    styles.deckBadge,
+                    { backgroundColor: colors.primarySoft },
+                  ]}>
+                  <Text style={[styles.deckBadgeText, { color: colors.primary }]}>
+                    {deck}
+                  </Text>
+                </View>
+              ) : null}
 
-              <View style={styles.contentCenter}>
+              <View style={[styles.contentCenter, !showDeckBadge && { paddingTop: spacing.md }]}>
                 <Text
                   style={[
                     styles.frontText,
@@ -175,16 +211,20 @@ export default function Flashcard({
                 },
               ]}>
               <View style={styles.backHeader}>
-                <View
-                  style={[
-                    styles.deckBadge,
-                    styles.backDeckBadge,
-                    { backgroundColor: colors.secondarySoft },
-                  ]}>
-                  <Text style={[styles.deckBadgeText, { color: colors.secondary }]}>
-                    {deck}
-                  </Text>
-                </View>
+                {showDeckBadge ? (
+                  <View
+                    style={[
+                      styles.deckBadge,
+                      styles.backDeckBadge,
+                      { backgroundColor: colors.secondarySoft },
+                    ]}>
+                    <Text style={[styles.deckBadgeText, { color: colors.secondary }]}>
+                      {deck}
+                    </Text>
+                  </View>
+                ) : (
+                  <View />
+                )}
                 <View style={styles.statusBadges}>
                   <View
                     style={[

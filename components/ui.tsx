@@ -14,7 +14,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 
 import AppButton from './AppButton';
-import { PressableScale } from './animations';
+import { PressableScale, motion, progressEasing } from './animations';
 
 import {
   cardRadius,
@@ -185,7 +185,10 @@ export function ProgressTrack({
   const animatedPercent = useSharedValue(0);
 
   useEffect(() => {
-    animatedPercent.value = withTiming(clamped, { duration: 420 });
+    animatedPercent.value = withTiming(clamped, {
+      duration: motion.progressDuration,
+      easing: progressEasing,
+    });
   }, [animatedPercent, clamped]);
 
   const fillStyle = useAnimatedStyle(() => ({

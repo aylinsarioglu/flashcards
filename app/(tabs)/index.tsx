@@ -5,7 +5,9 @@ import { router } from 'expo-router';
 
 import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
+import CardSearch from '../../components/CardSearch';
 import ScreenContainer from '../../components/ScreenContainer';
+import StatsOverview from '../../components/StatsOverview';
 import { FadeInView, motion } from '../../components/animations';
 import {
   Badge,
@@ -14,7 +16,6 @@ import {
   PageHeader,
   ProgressTrack,
   SectionTitle,
-  StatCard,
 } from '../../components/ui';
 import { layout, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
@@ -34,6 +35,8 @@ function getGreeting() {
   return 'Good Evening';
 }
 
+type CardWithFavorite = { favorite?: boolean };
+
 export default function HomeScreen() {
   const {
     cards,
@@ -42,6 +45,8 @@ export default function HomeScreen() {
     currentStreak,
     continueLearning,
     isContinueLearningLoaded,
+    studyStats,
+    getStudyAccuracy,
   } = useCards();
   const { colors, isDark } = useTheme();
 
@@ -79,6 +84,48 @@ export default function HomeScreen() {
       .sort((a, b) => b.total - a.total);
   }, [cards]);
 
+  const cardsLearned = useMemo(
+    () => cards.filter((card) => card.learned).length,
+    [cards],
+  );
+
+  const favoriteDeck = useMemo(() => {
+    if (cards.length === 0) {
+      return '—';
+    }
+
+    const favoriteCounts = cards.reduce<Record<string, number>>((acc, card) => {
+      const withFavorite = card as CardWithFavorite;
+
+      if (withFavorite.favorite) {
+        acc[card.deck] = (acc[card.deck] ?? 0) + 1;
+      }
+
+      return acc;
+    }, {});
+
+    const topFavorite = Object.entries(favoriteCounts).sort((a, b) => b[1] - a[1])[0];
+
+    if (topFavorite && topFavorite[1] > 0) {
+      return topFavorite[0];
+    }
+
+    if (continueLearning?.deck) {
+      return continueLearning.deck;
+    }
+
+    const deckCounts = cards.reduce<Record<string, number>>((acc, card) => {
+      acc[card.deck] = (acc[card.deck] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    const largestDeck = Object.entries(deckCounts).sort((a, b) => b[1] - a[1])[0];
+
+    return largestDeck?.[0] ?? '—';
+  }, [cards, continueLearning?.deck]);
+
+  const accuracy = getStudyAccuracy();
+
   const wordOfTheDay = useMemo(() => {
     if (cards.length === 0) {
       return null;
@@ -94,28 +141,6 @@ export default function HomeScreen() {
     };
   }, [cards]);
 
-  const recentActivity = useMemo(() => {
-    const items: string[] = [];
-
-    if (reviewedToday > 0) {
-      items.push(`Reviewed ${reviewedToday} cards today`);
-    }
-
-    if (currentStreak > 0) {
-      items.push(`${currentStreak}-day streak is active`);
-    }
-
-    if (continueLearning?.deck) {
-      items.push(`Last studied deck: ${continueLearning.deck}`);
-    }
-
-    if (items.length === 0) {
-      items.push('No activity yet - start a quick study session.');
-    }
-
-    return items.slice(0, 3);
-  }, [continueLearning?.deck, currentStreak, reviewedToday]);
-
   const continueSession = useMemo(() => {
     if (!isContinueLearningLoaded || !continueLearning) {
       return null;
@@ -127,7 +152,6 @@ export default function HomeScreen() {
       return null;
     }
 
-    const learned = deckCards.filter((card) => card.learned).length;
     const savedIndex = Math.min(
       continueLearning.cardIndex,
       Math.max(0, deckCards.length - 1),
@@ -136,12 +160,7 @@ export default function HomeScreen() {
     return {
       name: continueLearning.deck,
       total: deckCards.length,
-      learned,
       cardIndex: savedIndex,
-      progressPercent:
-        deckCards.length > 0
-          ? Math.round((learned / deckCards.length) * 100)
-          : 0,
     };
   }, [cards, continueLearning, isContinueLearningLoaded]);
 
@@ -158,6 +177,11 @@ export default function HomeScreen() {
           title={`${getGreeting()} 👋`}
           subtitle="Keep your streak alive and learn something new today."
           colors={colors}
+        />
+
+        <CardSearch
+          cards={cards}
+          onSelectCard={(card) => router.push(`/edit-card?id=${card.id}`)}
         />
 
         <SectionTitle title="Today's Goal" colors={colors} />
@@ -206,68 +230,79 @@ export default function HomeScreen() {
           </AppCard>
         </FadeInView>
 
-        <SectionTitle title="Current Streak" colors={colors} />
+        <SectionTitle title="Your Stats" colors={colors} />
         <FadeInView delay={motion.stagger} style={{ marginBottom: spacing.lg }}>
-          <StatCard
-            value={currentStreak}
-            label={currentStreak === 1 ? 'day streak' : 'days streak'}
-            accent={colors.warning}
-            icon="flame"
+          <StatsOverview
+            studyTimeMinutes={studyStats.studyTimeMinutes}
+            cardsLearned={cardsLearned}
+            currentStreak={currentStreak}
+            favoriteDeck={favoriteDeck}
+            accuracy={accuracy}
+            reviewHistory={studyStats.history}
             colors={colors}
             isDark={isDark}
           />
+          <Pressable
+            onPress={() => router.push('/statistics')}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              alignSelf: 'flex-start',
+              gap: spacing.xs,
+              marginTop: spacing.md,
+              opacity: pressed ? 0.75 : 1,
+            })}
+            accessibilityRole="button"
+            accessibilityLabel="View all statistics">
+            <Text
+              style={[
+                typography.subtitle,
+                { color: colors.primary, fontWeight: '700' },
+              ]}>
+              View all stats
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+          </Pressable>
         </FadeInView>
 
         <SectionTitle title="Continue Learning" colors={colors} />
         {continueSession ? (
           <FadeInView delay={motion.stagger * 2} style={{ marginBottom: spacing.lg }}>
             <AppCard accentColor={colors.secondary}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                  marginBottom: spacing.md,
-                }}>
-                <IconCircle
-                  icon="book"
-                  backgroundColor={colors.secondarySoft}
-                  iconColor={colors.secondary}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={[typography.title, { color: colors.text }]}>
-                    {continueSession.name}
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.muted }]}>
-                    Card {continueSession.cardIndex + 1} of {continueSession.total}
-                  </Text>
-                </View>
-                <Badge
-                  label={`${continueSession.progressPercent}%`}
-                  backgroundColor={colors.secondarySoft}
-                  textColor={colors.secondary}
-                />
-              </View>
-              <ProgressTrack
-                percent={continueSession.progressPercent}
-                colors={colors}
-                fillColor={colors.secondary}
-              />
+              <Text style={[typography.title, { color: colors.text, marginBottom: spacing.xs }]}>
+                {continueSession.name}
+              </Text>
               <Text
                 style={[
-                  typography.caption,
-                  { color: colors.muted, marginTop: spacing.sm, marginBottom: spacing.lg },
+                  typography.bodyMedium,
+                  { color: colors.muted, marginBottom: spacing.lg },
                 ]}>
-                {continueSession.learned} of {continueSession.total} cards learned
+                Card {continueSession.cardIndex + 1} / {continueSession.total}
               </Text>
-              <AppButton
-                title="Resume"
+              <Pressable
                 onPress={() =>
                   router.push(
                     `/study?deck=${encodeURIComponent(continueSession.name)}&resume=1`,
                   )
                 }
-              />
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  alignSelf: 'flex-start',
+                  gap: spacing.xs,
+                  opacity: pressed ? 0.75 : 1,
+                })}
+                accessibilityRole="button"
+                accessibilityLabel="Resume studying">
+                <Text
+                  style={[
+                    typography.subtitle,
+                    { color: colors.primary, fontWeight: '700' },
+                  ]}>
+                  Resume
+                </Text>
+                <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+              </Pressable>
             </AppCard>
           </FadeInView>
         ) : (
@@ -363,7 +398,7 @@ export default function HomeScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <AppButton
-                title="Manage Cards"
+                title="Cards"
                 variant="outline"
                 onPress={() => router.push('/cards')}
               />
@@ -373,41 +408,47 @@ export default function HomeScreen() {
 
         <SectionTitle title="Word of the Day" colors={colors} />
         <FadeInView delay={motion.stagger * 5} style={{ marginBottom: spacing.lg }}>
-          <AppCard>
+          <AppCard accentColor={colors.accent}>
             {wordOfTheDay ? (
               <>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <Ionicons name="sparkles" size={18} color={colors.accent} />
-                  <Text style={[typography.caption, { color: colors.muted }]}>
-                    From {wordOfTheDay.deck}
-                  </Text>
-                </View>
-                <Text style={[typography.title, { color: colors.text, marginTop: spacing.sm }]}>
+                <Text style={[typography.title, { color: colors.text, marginBottom: spacing.xs }]}>
                   {wordOfTheDay.front}
                 </Text>
-                <Text style={[typography.body, { color: colors.muted, marginTop: spacing.xs }]}>
+                <Text
+                  style={[
+                    typography.bodyMedium,
+                    { color: colors.muted, marginBottom: spacing.lg },
+                  ]}>
                   {wordOfTheDay.back}
                 </Text>
+                <Pressable
+                  onPress={() =>
+                    router.push(`/study?deck=${encodeURIComponent(wordOfTheDay.deck)}`)
+                  }
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    alignSelf: 'flex-start',
+                    gap: spacing.xs,
+                    opacity: pressed ? 0.75 : 1,
+                  })}
+                  accessibilityRole="button"
+                  accessibilityLabel="Study word of the day">
+                  <Text
+                    style={[
+                      typography.subtitle,
+                      { color: colors.primary, fontWeight: '700' },
+                    ]}>
+                    Study
+                  </Text>
+                  <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+                </Pressable>
               </>
             ) : (
               <Text style={[typography.body, { color: colors.muted }]}>
                 Add cards to get a daily word recommendation.
               </Text>
             )}
-          </AppCard>
-        </FadeInView>
-
-        <SectionTitle title="Recent Activity" colors={colors} />
-        <FadeInView delay={motion.stagger * 6}>
-          <AppCard>
-            <View style={{ gap: spacing.sm }}>
-              {recentActivity.map((activity) => (
-                <View key={activity} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <Ionicons name="time-outline" size={16} color={colors.muted} />
-                  <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{activity}</Text>
-                </View>
-              ))}
-            </View>
           </AppCard>
         </FadeInView>
       </ScrollView>

@@ -1,37 +1,34 @@
 import Constants from 'expo-constants';
-import { useState } from 'react';
 import {
   Alert,
-  Linking,
-  Modal,
-  Pressable,
   ScrollView,
-  Share,
   Text,
-  TextInput,
   View,
   type AlertButton,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import ScreenContainer from '../../components/ScreenContainer';
+import { FadeInView, motion, PressableScale } from '../../components/animations';
+import { spacing as dsSpacing } from '../../constants/spacing';
+import { typography as dsTypography } from '../../constants/typography';
 import {
   getShadow,
+  layout,
   radius,
   spacing,
-  typography,
   type ThemeColors,
 } from '../../constants/theme';
-import { parseAppBackup, serializeAppBackup } from '../../storage/backupStorage';
 import { useCards } from '../../storage/CardsContext';
-import { getThemeModeLabel, useTheme, type ThemeMode } from '../../storage/ThemeContext';
+import {
+  getThemeModeLabel,
+  useTheme,
+  type ThemeMode,
+} from '../../storage/ThemeContext';
 
 const APP_VERSION =
   Constants.expoConfig?.version ?? Constants.manifest?.version ?? '1.0.0';
-
-const CONTACT_EMAIL = 'hello@flashcards.app';
 
 const DAILY_GOAL_OPTIONS = [5, 10, 15, 20, 30];
 
@@ -61,10 +58,10 @@ function SettingsRow({
   const textColor = destructive ? colors.danger : colors.text;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={!onPress}
-      style={({ pressed }) => ({
+      style={{
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -72,38 +69,51 @@ function SettingsRow({
         paddingHorizontal: spacing.md,
         borderRadius: radius.lg,
         backgroundColor: colors.surface,
-        opacity: pressed && onPress ? 0.9 : 1,
         ...getShadow('soft', isDark),
-      })}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
+      }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          flex: 1,
+        }}>
         <Text style={{ fontSize: 20 }}>{emoji}</Text>
         <Ionicons
           name={icon}
           size={20}
           color={destructive ? colors.danger : colors.primary}
         />
-        <Text style={{ fontSize: 16, fontWeight: '600', color: textColor, flex: 1 }}>
+        <Text
+          style={[
+            dsTypography.subtitle,
+            { color: textColor, flex: 1, fontWeight: '600' },
+          ]}>
           {label}
         </Text>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+        }}>
         {value ? (
-          <Text style={{ fontSize: 15, color: colors.muted }}>{value}</Text>
+          <Text style={[dsTypography.body, { color: colors.muted, fontSize: 15 }]}>
+            {value}
+          </Text>
         ) : null}
         {showChevron && onPress ? (
           <Ionicons name="chevron-forward" size={20} color={colors.muted} />
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 export default function SettingsScreen() {
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
-  const { dailyGoal, setDailyGoal, resetProgress, exportBackupData, restoreBackupData } =
-    useCards();
-  const [importVisible, setImportVisible] = useState(false);
-  const [importText, setImportText] = useState('');
+  const { dailyGoal, setDailyGoal, resetProgress } = useCards();
 
   function handleThemePress() {
     const options: { mode: ThemeMode; label: string }[] = [
@@ -134,48 +144,18 @@ export default function SettingsScreen() {
 
     buttons.push({ text: 'Cancel', style: 'cancel' });
 
-    Alert.alert('Daily Goal', 'How many cards do you want to review each day?', buttons);
+    Alert.alert(
+      'Daily Goal',
+      'How many cards do you want to review each day?',
+      buttons,
+    );
   }
 
   function handleBackupPress() {
-    Alert.alert('Backup', 'Export or restore your flashcards and progress.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Export',
-        onPress: async () => {
-          try {
-            const backup = exportBackupData();
-            const message = serializeAppBackup(backup);
-
-            await Share.share({
-              title: 'Flashcards Backup',
-              message,
-            });
-          } catch {
-            Alert.alert('Export failed', 'Could not create backup. Please try again.');
-          }
-        },
-      },
-      {
-        text: 'Import',
-        onPress: () => {
-          setImportText('');
-          setImportVisible(true);
-        },
-      },
-    ]);
-  }
-
-  async function handleImportBackup() {
-    try {
-      const backup = parseAppBackup(importText.trim());
-      await restoreBackupData(backup);
-      setImportVisible(false);
-      setImportText('');
-      Alert.alert('Backup restored', 'Your data was imported successfully.');
-    } catch {
-      Alert.alert('Import failed', 'Invalid backup data. Check the JSON and try again.');
-    }
+    Alert.alert(
+      'Backup Data',
+      'Export and import your cards and progress will be available in a future update.',
+    );
   }
 
   function handleResetProgress() {
@@ -193,155 +173,110 @@ export default function SettingsScreen() {
     );
   }
 
-  function handleContactPress() {
-    const mailUrl = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Flashcards App Feedback')}`;
-
-    Linking.openURL(mailUrl).catch(() => {
-      Alert.alert('Contact', `Email us at ${CONTACT_EMAIL}`);
-    });
+  function handleAboutPress() {
+    Alert.alert(
+      'About',
+      `Flashcards helps you learn vocabulary and collocations with a simple, focused study flow.\n\nBuilt with Expo.`,
+    );
   }
 
   return (
-    <ScreenContainer style={{ paddingHorizontal: spacing.lg }}>
+    <ScreenContainer style={{ paddingHorizontal: layout.contentPadding }}>
       <ScrollView
         contentContainerStyle={{
-          paddingVertical: spacing.xl,
-          paddingBottom: spacing.xxl,
+          paddingTop: dsSpacing[24],
+          paddingBottom: dsSpacing[40],
         }}
         showsVerticalScrollIndicator={false}>
-        <Text style={[typography.hero, { color: colors.text, marginBottom: spacing.sm }]}>
+        <Text
+          style={[
+            dsTypography.heading,
+            { color: colors.text, fontSize: 32, marginBottom: dsSpacing[8] },
+          ]}>
           Settings
         </Text>
-        <Text style={[typography.body, { color: colors.muted, marginBottom: spacing.xl }]}>
+        <Text
+          style={[
+            dsTypography.body,
+            { color: colors.muted, marginBottom: dsSpacing[24] },
+          ]}>
           Customize your learning experience.
         </Text>
 
         <AppCard style={{ marginBottom: spacing.lg }}>
-          <View style={{ gap: spacing.sm }}>
-            <SettingsRow
-              emoji="🌙"
-              icon={isDark ? 'moon' : 'sunny'}
-              label="Dark Mode"
-              value={getThemeModeLabel(themeMode)}
-              colors={colors}
-              isDark={isDark}
-              onPress={handleThemePress}
-            />
-            <SettingsRow
-              emoji="🎯"
-              icon="flag-outline"
-              label="Daily Goal"
-              value={`${dailyGoal} cards`}
-              colors={colors}
-              isDark={isDark}
-              onPress={handleDailyGoalPress}
-            />
-          </View>
+          <FadeInView delay={0}>
+            <View style={{ gap: spacing.sm }}>
+              <SettingsRow
+                emoji="🌙"
+                icon={isDark ? 'moon' : 'sunny'}
+                label="Dark Mode"
+                value={getThemeModeLabel(themeMode)}
+                colors={colors}
+                isDark={isDark}
+                onPress={handleThemePress}
+              />
+              <SettingsRow
+                emoji="🎯"
+                icon="flag-outline"
+                label="Daily Goal"
+                value={`${dailyGoal} cards`}
+                colors={colors}
+                isDark={isDark}
+                onPress={handleDailyGoalPress}
+              />
+            </View>
+          </FadeInView>
         </AppCard>
 
         <AppCard style={{ marginBottom: spacing.lg }}>
-          <View style={{ gap: spacing.sm }}>
-            <SettingsRow
-              emoji="📦"
-              icon="cloud-upload-outline"
-              label="Backup"
-              value="Export / Import"
-              colors={colors}
-              isDark={isDark}
-              onPress={handleBackupPress}
-            />
-            <SettingsRow
-              emoji="♻"
-              icon="refresh-outline"
-              label="Reset Progress"
-              colors={colors}
-              isDark={isDark}
-              onPress={handleResetProgress}
-              destructive
-            />
-          </View>
+          <FadeInView delay={motion.stagger}>
+            <View style={{ gap: spacing.sm }}>
+              <SettingsRow
+                emoji="📦"
+                icon="cloud-upload-outline"
+                label="Backup Data"
+                value="Coming soon"
+                colors={colors}
+                isDark={isDark}
+                onPress={handleBackupPress}
+              />
+              <SettingsRow
+                emoji="♻"
+                icon="refresh-outline"
+                label="Reset Progress"
+                colors={colors}
+                isDark={isDark}
+                onPress={handleResetProgress}
+                destructive
+              />
+            </View>
+          </FadeInView>
         </AppCard>
 
         <AppCard>
-          <View style={{ gap: spacing.sm }}>
-            <SettingsRow
-              emoji="📱"
-              icon="phone-portrait-outline"
-              label="Version"
-              value={APP_VERSION}
-              colors={colors}
-              isDark={isDark}
-              showChevron={false}
-            />
-            <SettingsRow
-              emoji="📧"
-              icon="mail-outline"
-              label="Contact"
-              value={CONTACT_EMAIL}
-              colors={colors}
-              isDark={isDark}
-              onPress={handleContactPress}
-            />
-          </View>
-        </AppCard>
-      </ScrollView>
-
-      <Modal
-        visible={importVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setImportVisible(false)}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            backgroundColor: 'rgba(0,0,0,0.45)',
-          }}>
-          <View
-            style={{
-              backgroundColor: colors.card,
-              borderTopLeftRadius: radius.xl,
-              borderTopRightRadius: radius.xl,
-              padding: spacing.lg,
-              paddingBottom: spacing.xxl,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}>
-            <Text style={[typography.title, { color: colors.text, marginBottom: spacing.sm }]}>
-              Import Backup
-            </Text>
-            <Text style={[typography.body, { color: colors.muted, marginBottom: spacing.md }]}>
-              Paste your backup JSON below.
-            </Text>
-            <TextInput
-              value={importText}
-              onChangeText={setImportText}
-              multiline
-              placeholder="Paste backup JSON..."
-              placeholderTextColor={colors.muted}
-              style={{
-                minHeight: 160,
-                borderWidth: 1.5,
-                borderColor: colors.border,
-                borderRadius: radius.lg,
-                padding: spacing.md,
-                backgroundColor: colors.surfaceElevated,
-                color: colors.text,
-                textAlignVertical: 'top',
-                marginBottom: spacing.lg,
-              }}
-            />
-            <AppButton title="Restore Backup" onPress={handleImportBackup} />
-            <View style={{ marginTop: spacing.sm }}>
-              <AppButton
-                title="Cancel"
-                variant="outline"
-                onPress={() => setImportVisible(false)}
+          <FadeInView delay={motion.stagger * 2}>
+            <View style={{ gap: spacing.sm }}>
+              <SettingsRow
+                emoji="ℹ️"
+                icon="information-circle-outline"
+                label="About"
+                colors={colors}
+                isDark={isDark}
+                onPress={handleAboutPress}
+              />
+              <SettingsRow
+                emoji="📱"
+                icon="phone-portrait-outline"
+                label="Version"
+                value={APP_VERSION}
+                colors={colors}
+                isDark={isDark}
+                showChevron={false}
               />
             </View>
-          </View>
-        </View>
-      </Modal>
+          </FadeInView>
+        </AppCard>
+      </ScrollView>
     </ScreenContainer>
   );
 }

@@ -6,6 +6,7 @@ import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import AppInput from '../../components/AppInput';
 import ScreenContainer from '../../components/ScreenContainer';
+import { FadeInView, motion } from '../../components/animations';
 import { PageHeader } from '../../components/ui';
 import { layout, spacing } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
@@ -60,13 +61,16 @@ export default function AddCardScreen() {
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
-        <PageHeader
-          title="Add Card"
-          subtitle="Build your deck with rich examples and translations."
-          colors={colors}
-        />
+        <FadeInView delay={0}>
+          <PageHeader
+            title="Add Card"
+            subtitle="Build your deck with rich examples and translations."
+            colors={colors}
+          />
+        </FadeInView>
 
-        <AppCard accentColor={colors.primary}>
+        <FadeInView delay={motion.stagger}>
+          <AppCard accentColor={colors.primary}>
           <AppInput
             label="Front"
             value={front}
@@ -101,14 +105,17 @@ export default function AddCardScreen() {
             style={{ marginBottom: 0 }}
           />
         </AppCard>
+        </FadeInView>
 
-        <View style={{ marginTop: spacing.lg }}>
-          <AppButton
-            title="Add Card"
-            onPress={handleAddCard}
-            disabled={!canSubmit}
-          />
-        </View>
+        <FadeInView delay={motion.stagger * 2}>
+          <View style={{ marginTop: spacing.lg }}>
+            <AppButton
+              title="Add Card"
+              onPress={handleAddCard}
+              disabled={!canSubmit}
+            />
+          </View>
+        </FadeInView>
       </ScrollView>
     </ScreenContainer>
   );

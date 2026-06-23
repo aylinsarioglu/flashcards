@@ -1,9 +1,5 @@
-import { useRef } from 'react';
 import {
   ActivityIndicator,
-  Animated,
-  Easing,
-  Pressable,
   Text,
   type PressableProps,
   type StyleProp,
@@ -16,6 +12,7 @@ import { getShadows, type ShadowToken } from '../constants/shadows';
 import { spacing } from '../constants/spacing';
 import { typography } from '../constants/typography';
 import { useTheme } from '../storage/ThemeContext';
+import { PressableScale } from './animations';
 
 export type AppButtonVariant = 'primary' | 'secondary' | 'danger' | 'outline';
 
@@ -37,8 +34,6 @@ type VariantStyles = {
 };
 
 const onFilledText = '#FFFFFF';
-const PRESS_SCALE = 0.97;
-const PRESS_DURATION = 120;
 
 function getVariantStyles(
   palette: ColorPalette,
@@ -109,64 +104,36 @@ export default function AppButton({
   const palette = isDark ? darkColors : lightColors;
   const isInactive = disabled || loading;
   const variantStyles = getVariantStyles(palette, variant, isDark, isInactive);
-  const scale = useRef(new Animated.Value(1)).current;
-
-  function animateScale(toValue: number) {
-    Animated.timing(scale, {
-      toValue,
-      duration: PRESS_DURATION,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  }
-
-  function handlePressIn() {
-    if (!isInactive) {
-      animateScale(PRESS_SCALE);
-    }
-  }
-
-  function handlePressOut() {
-    if (!isInactive) {
-      animateScale(1);
-    }
-  }
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={isInactive}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      accessibilityRole="button">
-      <Animated.View
-        style={[
-          {
-            alignSelf: 'stretch',
-            width: '100%',
-            minHeight: spacing[40] + spacing[8],
-            paddingVertical: spacing[16],
-            paddingHorizontal: spacing[24],
-            borderRadius: radius[16],
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: variantStyles.backgroundColor,
-            borderColor: variantStyles.borderColor,
-            borderWidth: variantStyles.borderWidth,
-            transform: [{ scale }],
-            ...variantStyles.shadow,
-          },
-          isInactive ? { opacity: 0.55 } : undefined,
-          style,
-        ]}>
-        {loading ? (
-          <ActivityIndicator color={variantStyles.textColor} size="small" />
-        ) : (
-          <Text style={[typography.button, { color: variantStyles.textColor }]}>
-            {title}
-          </Text>
-        )}
-      </Animated.View>
-    </Pressable>
+      style={[
+        {
+          alignSelf: 'stretch',
+          width: '100%',
+          minHeight: spacing[40] + spacing[8],
+          paddingVertical: spacing[16],
+          paddingHorizontal: spacing[24],
+          borderRadius: radius[16],
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: variantStyles.backgroundColor,
+          borderColor: variantStyles.borderColor,
+          borderWidth: variantStyles.borderWidth,
+          ...variantStyles.shadow,
+        },
+        isInactive ? { opacity: 0.55 } : undefined,
+        style,
+      ]}>
+      {loading ? (
+        <ActivityIndicator color={variantStyles.textColor} size="small" />
+      ) : (
+        <Text style={[typography.button, { color: variantStyles.textColor }]}>
+          {title}
+        </Text>
+      )}
+    </PressableScale>
   );
 }

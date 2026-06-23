@@ -8,11 +8,10 @@ import AppCard from '../../components/AppCard';
 import Flashcard from '../../components/Flashcard';
 import ScreenContainer from '../../components/ScreenContainer';
 import SessionComplete from '../../components/SessionComplete';
-import { PressableScale } from '../../components/animations';
+import StudySessionHeader from '../../components/StudySessionHeader';
+import { PressableScale, FadeInView, motion } from '../../components/animations';
 import {
-  Badge,
   IconCircle,
-  ProgressTrack,
   RatingButton,
   SegmentedControl,
 } from '../../components/ui';
@@ -75,7 +74,8 @@ function getSessionTitle(mode?: string, deck?: string) {
   return 'Study Session';
 }
 
-export default function StudyScreen() {  const params = useLocalSearchParams<{
+export default function StudyScreen() {
+  const params = useLocalSearchParams<{
     mode?: string;
     deck?: string;
     resume?: string;
@@ -94,6 +94,10 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
     isContinueLearningLoaded,
     saveContinueLearning,
     clearContinueLearning,
+    recordGoodReview,
+    recordAgainReview,
+    addStudySessionTime,
+    recordStudySessionComplete,
   } = useCards();
   const { colors, isDark } = useTheme();
 
@@ -183,24 +187,9 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
 
   const currentCard = studyQueue[currentIndex];
   const currentCardWithFavorite = currentCard as CardWithFavorite | undefined;
-  const deckProgress = useMemo(() => {
-    if (!currentCard) {
-      return null;
-    }
-
-    const deckCards = filteredStudyCards.filter(
-      (card) => card.deck === currentCard.deck,
-    );
-    const deckLearned = deckCards.filter((card) => card.learned).length;
-
-    return {
-      name: currentCard.deck,
-      total: deckCards.length,
-      learned: deckLearned,
-    };
-  }, [filteredStudyCards, currentCard]);
-
   const totalAnswers = goodCount + againCount;
+  const sessionAccuracy =
+    totalAnswers === 0 ? null : Math.round((goodCount / totalAnswers) * 100);
   const accuracyPercent =
     totalAnswers === 0
       ? 100
@@ -208,6 +197,7 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
 
   function handleGood() {
     incrementCardsReviewedToday();
+    recordGoodReview();
     setGoodCount((prev) => prev + 1);
 
     if (currentCard) {
@@ -221,6 +211,8 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
     if (currentIndex === studyQueue.length - 1) {
       completeStudySession();
       clearContinueLearning();
+      addStudySessionTime(Math.max(1, Math.round(sessionTotal * 1.5)));
+      recordStudySessionComplete();
       setCompleted(true);
     } else {
       setCurrentIndex((prev) => prev + 1);
@@ -228,6 +220,7 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
   }
 
   function handleAgain() {
+    recordAgainReview();
     setAgainCount((prev) => prev + 1);
 
     if (currentIndex === studyQueue.length - 1) {
@@ -266,13 +259,10 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
     });
   }
 
-  const progressPercent =
-    studyQueue.length > 0
-      ? Math.round(((currentIndex + 1) / studyQueue.length) * 100)
-      : 0;
   const cardsRemaining = Math.max(studyQueue.length - currentIndex, 0);
 
-  if (filteredStudyCards.length === 0) {    return (
+  if (filteredStudyCards.length === 0) {
+    return (
       <ScreenContainer
         style={{
           justifyContent: 'center',
@@ -344,12 +334,12 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
   return (
     <ScreenContainer>
       <View style={{ flex: 1 }}>
-        {/* Compact progress header */}
+        <FadeInView delay={0}>
         <View
           style={{
             paddingHorizontal: layout.contentPadding,
             paddingTop: dsSpacing[16],
-            paddingBottom: dsSpacing[12],
+            paddingBottom: dsSpacing[8],
           }}>
           {deck ? (
             <PressableScale
@@ -367,110 +357,72 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
               <Text
                 style={[
                   dsTypography.subtitle,
-                  { color: colors.primary, fontSize: 16 },
+                  { color: colors.primary, fontWeight: '700' },
                 ]}>
                 Back
               </Text>
             </PressableScale>
           ) : null}
 
-          <Text style={[dsTypography.heading, { color: colors.text, fontSize: 26 }]}>
+          <Text
+            style={[
+              dsTypography.heading,
+              { color: colors.text, fontSize: 28, marginBottom: dsSpacing[4] },
+            ]}>
             Study Session
           </Text>
-          {!deck ? (
-            <Text
-              style={[
-                dsTypography.caption,
-                { color: colors.muted, marginTop: dsSpacing[4] },
-              ]}>
-              {getSessionTitle(mode, deck)}
-            </Text>
-          ) : null}
 
           {!deck ? (
-            <View style={{ marginTop: dsSpacing[12] }}>
-              <SegmentedControl
-                colors={colors}
-                value={mode ?? 'all'}
-                onChange={setStudyMode}
-                options={[
-                  { key: 'all', label: 'All', icon: 'book' },
-                  { key: 'favorites', label: 'Favorites', icon: 'heart' },
-                  { key: 'learning', label: 'Learning', icon: 'school' },
-                ]}
-              />
-            </View>
+            <>
+              <Text
+                style={[
+                  dsTypography.body,
+                  { color: colors.muted, marginBottom: dsSpacing[12] },
+                ]}>
+                {getSessionTitle(mode, deck)}
+              </Text>
+              <View style={{ marginBottom: dsSpacing[16] }}>
+                <SegmentedControl
+                  colors={colors}
+                  value={mode ?? 'all'}
+                  onChange={setStudyMode}
+                  options={[
+                    { key: 'all', label: 'All', icon: 'book' },
+                    { key: 'favorites', label: 'Favorites', icon: 'heart' },
+                    { key: 'learning', label: 'Learning', icon: 'school' },
+                  ]}
+                />
+              </View>
+            </>
           ) : null}
-
-          <View style={{ marginTop: dsSpacing[16] }}>
-            <ProgressTrack
-              percent={progressPercent}
-              colors={colors}
-              height={8}
-            />
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: dsSpacing[8],
-              }}>
-              <Text
-                style={[
-                  dsTypography.caption,
-                  { color: colors.text, fontWeight: '700' },
-                ]}>
-                {progressPercent}% Complete
-              </Text>
-              <Text
-                style={[
-                  dsTypography.caption,
-                  { color: colors.muted, fontWeight: '600' },
-                ]}>
-                {cardsRemaining} {cardsRemaining === 1 ? 'Card' : 'Cards'} Remaining
-              </Text>
-            </View>
-          </View>
 
           {currentCard ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: dsSpacing[8],
-                marginTop: dsSpacing[12],
-              }}>
-              <Badge
-                label={currentCard.deck}
-                icon="folder"
-                backgroundColor={colors.primarySoft}
-                textColor={colors.primary}
-              />
-              {deckProgress ? (
-                <Badge
-                  label={`${deckProgress.learned}/${deckProgress.total} learned`}
-                  icon="checkmark-circle"
-                  backgroundColor={colors.successSoft}
-                  textColor={colors.success}
-                />
-              ) : null}
-            </View>
+            <StudySessionHeader
+              deckName={currentCard.deck}
+              current={currentIndex + 1}
+              total={studyQueue.length}
+              cardsRemaining={cardsRemaining}
+              accuracy={sessionAccuracy}
+              colors={colors}
+            />
           ) : null}
         </View>
+        </FadeInView>
 
-        {/* Flashcard — visual focus */}
+        <FadeInView delay={motion.stagger}>
         <View
           style={{
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: layout.contentPadding,
-            paddingVertical: dsSpacing[8],
+            paddingVertical: dsSpacing[16],
+            minHeight: 320,
           }}>
           <Flashcard
             key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
             size="large"
+            showDeckBadge={false}
             front={currentCard.front}
             back={currentCard.back}
             deck={currentCard.deck}
@@ -480,15 +432,30 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
             learned={currentCard.learned}
           />
         </View>
+        </FadeInView>
 
-        {/* Rating grid — full width 2×2 */}
+        <FadeInView delay={motion.stagger * 2}>
         <View
           style={{
             paddingHorizontal: layout.contentPadding,
-            paddingTop: dsSpacing[12],
+            paddingTop: dsSpacing[8],
             paddingBottom: dsSpacing[32],
             gap: dsSpacing[12],
           }}>
+          <Text
+            style={[
+              dsTypography.caption,
+              {
+                color: colors.muted,
+                textAlign: 'center',
+                marginBottom: dsSpacing[4],
+                fontWeight: '600',
+                letterSpacing: 0.4,
+                textTransform: 'uppercase',
+              },
+            ]}>
+            How well did you know it?
+          </Text>
           <View style={{ flexDirection: 'row', gap: dsSpacing[12] }}>
             <RatingButton
               label="Again"
@@ -525,6 +492,7 @@ export default function StudyScreen() {  const params = useLocalSearchParams<{
             />
           </View>
         </View>
+        </FadeInView>
       </View>
     </ScreenContainer>
   );
