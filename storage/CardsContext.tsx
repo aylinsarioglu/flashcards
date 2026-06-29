@@ -26,6 +26,10 @@ import {
   type ContinueLearningState,
 } from './continueLearningStorage';
 import { loadCards, saveCards } from './cardsStorage';
+import {
+  importCardsFromCsvContent,
+  type CsvImportResult,
+} from './csvImport';
 import type { AppBackup } from './backupStorage';
 import {
   DEFAULT_STUDY_STATS,
@@ -90,6 +94,7 @@ type CardsContextValue = {
   addStudySessionTime: (minutes: number) => void;
   recordStudySessionComplete: () => void;
   getStudyAccuracy: () => number | null;
+  importCardsFromCsv: (csvText: string) => CsvImportResult;
 };
 
 export type { ContinueLearningState };
@@ -418,6 +423,12 @@ export function CardsProvider({ children }: CardsProviderProps) {
     return getAccuracyPercent(studyStats);
   }
 
+  function importCardsFromCsv(csvText: string): CsvImportResult {
+    const { cards: merged, result } = importCardsFromCsvContent(cards, csvText);
+    setCards(merged);
+    return result;
+  }
+
   function exportBackupData(): AppBackup {
     return {
       version: 1,
@@ -495,6 +506,7 @@ export function CardsProvider({ children }: CardsProviderProps) {
         addStudySessionTime,
         recordStudySessionComplete: recordStudySessionCompleteRating,
         getStudyAccuracy,
+        importCardsFromCsv,
       }}>
       {children}
     </CardsContext.Provider>

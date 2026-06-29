@@ -26,6 +26,7 @@ import {
   useTheme,
   type ThemeMode,
 } from '../../storage/ThemeContext';
+import { pickAndReadCsvFile } from '../../utils/csvImportPicker';
 
 const APP_VERSION =
   Constants.expoConfig?.version ?? Constants.manifest?.version ?? '1.0.0';
@@ -113,7 +114,7 @@ function SettingsRow({
 
 export default function SettingsScreen() {
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
-  const { dailyGoal, setDailyGoal, resetProgress } = useCards();
+  const { dailyGoal, setDailyGoal, resetProgress, importCardsFromCsv } = useCards();
 
   function handleThemePress() {
     const options: { mode: ThemeMode; label: string }[] = [
@@ -149,6 +150,38 @@ export default function SettingsScreen() {
       'How many cards do you want to review each day?',
       buttons,
     );
+  }
+
+  async function handleCsvImportPress() {
+    try {
+      const csvText = await pickAndReadCsvFile();
+
+      if (!csvText) {
+        return;
+      }
+
+      const result = importCardsFromCsv(csvText);
+      const parts = [`${result.imported} card${result.imported === 1 ? '' : 's'} imported.`];
+
+      if (result.skippedDuplicates > 0) {
+        parts.push(
+          `${result.skippedDuplicates} duplicate${result.skippedDuplicates === 1 ? '' : 's'} skipped.`,
+        );
+      }
+
+      if (result.skippedInvalid > 0) {
+        parts.push(
+          `${result.skippedInvalid} invalid row${result.skippedInvalid === 1 ? '' : 's'} skipped.`,
+        );
+      }
+
+      Alert.alert('Import successful', parts.join('\n'));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Could not import CSV file.';
+
+      Alert.alert('Import failed', message);
+    }
   }
 
   function handleBackupPress() {
@@ -231,6 +264,14 @@ export default function SettingsScreen() {
         <AppCard style={{ marginBottom: spacing.lg }}>
           <FadeInView delay={motion.stagger}>
             <View style={{ gap: spacing.sm }}>
+              <SettingsRow
+                emoji="📄"
+                icon="document-text-outline"
+                label="Import CSV"
+                colors={colors}
+                isDark={isDark}
+                onPress={handleCsvImportPress}
+              />
               <SettingsRow
                 emoji="📦"
                 icon="cloud-upload-outline"
