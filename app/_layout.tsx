@@ -16,6 +16,11 @@ export default function RootLayout() {
               animation: 'fade',
               animationDuration: 240,
             }}>
+            <Stack.Screen name="index" options={{ headerShown: false, animation: 'none' }} />
+            <Stack.Screen
+              name="onboarding"
+              options={{ headerShown: false, animation: 'fade', gestureEnabled: false }}
+            />
             <Stack.Screen
               name="(tabs)"
               options={{ headerShown: false, animation: 'fade' }}
@@ -30,6 +35,14 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="statistics"
+              options={{
+                headerShown: false,
+                animation: 'fade',
+                animationDuration: 240,
+              }}
+            />
+            <Stack.Screen
+              name="starter-library"
               options={{
                 headerShown: false,
                 animation: 'fade',

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -7,6 +7,8 @@ import AppButton from '../../components/AppButton';
 import AppCard from '../../components/AppCard';
 import CardSearch from '../../components/CardSearch';
 import ScreenContainer from '../../components/ScreenContainer';
+import CustomDecksEmptyState from '../../components/CustomDecksEmptyState';
+import StarterDeckCard from '../../components/StarterDeckCard';
 import StatsOverview from '../../components/StatsOverview';
 import { FadeInView, motion } from '../../components/animations';
 import {
@@ -17,6 +19,7 @@ import {
   ProgressTrack,
   SectionTitle,
 } from '../../components/ui';
+import { isStarterDeck, starterDecks, type StarterDeckName } from '../../data/starterLibrary';
 import { layout, spacing, typography } from '../../constants/theme';
 import { useCards } from '../../storage/CardsContext';
 import { useTheme } from '../../storage/ThemeContext';
@@ -37,6 +40,15 @@ function getGreeting() {
 
 type CardWithFavorite = { favorite?: boolean };
 
+const STARTER_DECK_META: Record<
+  StarterDeckName,
+  { icon: 'chatbubbles' | 'airplane' | 'flash'; accent: 'primary' | 'secondary' | 'accent' }
+> = {
+  'Daily English': { icon: 'chatbubbles', accent: 'primary' },
+  'Travel English': { icon: 'airplane', accent: 'secondary' },
+  'Phrasal Verbs': { icon: 'flash', accent: 'accent' },
+};
+
 export default function HomeScreen() {
   const {
     cards,
@@ -49,6 +61,16 @@ export default function HomeScreen() {
     getStudyAccuracy,
   } = useCards();
   const { colors, isDark } = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
+
+  const starterDeckColumns = screenWidth >= 720 ? 3 : screenWidth >= 480 ? 2 : 1;
+  const starterDeckWidth =
+    starterDeckColumns === 1
+      ? undefined
+      : (Math.min(screenWidth, layout.maxWidth) -
+          layout.contentPadding * 2 -
+          spacing.md * (starterDeckColumns - 1)) /
+        starterDeckColumns;
 
   const reviewedToday = dailyProgress.cardsReviewedToday;
   const goalProgressPercent =
@@ -147,6 +169,7 @@ export default function HomeScreen() {
     }
 
     const deckCards = cards.filter((card) => card.deck === continueLearning.deck);
+    const learned = deckCards.filter((card) => card.learned).length;
 
     if (deckCards.length === 0) {
       return null;
@@ -157,12 +180,38 @@ export default function HomeScreen() {
       Math.max(0, deckCards.length - 1),
     );
 
+    const sessionProgressPercent =
+      deckCards.length > 0
+        ? Math.round(((savedIndex + 1) / deckCards.length) * 100)
+        : 0;
+
+    const deckProgressPercent =
+      deckCards.length > 0 ? Math.round((learned / deckCards.length) * 100) : 0;
+
     return {
       name: continueLearning.deck,
       total: deckCards.length,
+      learned,
       cardIndex: savedIndex,
+      sessionProgressPercent,
+      deckProgressPercent,
     };
   }, [cards, continueLearning, isContinueLearningLoaded]);
+
+  const customDeckList = useMemo(
+    () => deckList.filter((deck) => !isStarterDeck(deck.name)),
+    [deckList],
+  );
+
+  const starterDeckEntries = useMemo(
+    () =>
+      (Object.keys(starterDecks) as StarterDeckName[]).map((name) => ({
+        name,
+        cardCount: starterDecks[name].length,
+        meta: STARTER_DECK_META[name],
+      })),
+    [],
+  );
 
   return (
     <ScreenContainer style={{ paddingHorizontal: layout.contentPadding }}>
@@ -269,40 +318,68 @@ export default function HomeScreen() {
         {continueSession ? (
           <FadeInView delay={motion.stagger * 2} style={{ marginBottom: spacing.lg }}>
             <AppCard accentColor={colors.secondary}>
-              <Text style={[typography.title, { color: colors.text, marginBottom: spacing.xs }]}>
-                {continueSession.name}
-              </Text>
-              <Text
-                style={[
-                  typography.bodyMedium,
-                  { color: colors.muted, marginBottom: spacing.lg },
-                ]}>
-                Card {continueSession.cardIndex + 1} / {continueSession.total}
-              </Text>
-              <Pressable
-                onPress={() =>
-                  router.push(
-                    `/study?deck=${encodeURIComponent(continueSession.name)}&resume=1`,
-                  )
-                }
-                style={({ pressed }) => ({
+              <View
+                style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  alignSelf: 'flex-start',
-                  gap: spacing.xs,
-                  opacity: pressed ? 0.75 : 1,
-                })}
-                accessibilityRole="button"
-                accessibilityLabel="Resume studying">
-                <Text
-                  style={[
-                    typography.subtitle,
-                    { color: colors.primary, fontWeight: '700' },
-                  ]}>
-                  Resume
-                </Text>
-                <Ionicons name="arrow-forward" size={18} color={colors.primary} />
-              </Pressable>
+                  gap: spacing.md,
+                  marginBottom: spacing.md,
+                }}>
+                <IconCircle
+                  icon="book"
+                  backgroundColor={colors.secondarySoft}
+                  iconColor={colors.secondary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.subtitle, { color: colors.text }]}>
+                    {continueSession.name}
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.muted }]}>
+                    Card {continueSession.cardIndex + 1} of {continueSession.total}
+                  </Text>
+                </View>
+                <Badge
+                  label={`${continueSession.learned}/${continueSession.total}`}
+                  backgroundColor={colors.primarySoft}
+                  textColor={colors.primary}
+                />
+              </View>
+
+              <Text
+                style={[
+                  typography.caption,
+                  { color: colors.muted, marginBottom: spacing.xs },
+                ]}>
+                Session progress
+              </Text>
+              <ProgressTrack
+                percent={continueSession.sessionProgressPercent}
+                colors={colors}
+                fillColor={colors.secondary}
+              />
+
+              <Text
+                style={[
+                  typography.caption,
+                  { color: colors.muted, marginTop: spacing.md, marginBottom: spacing.xs },
+                ]}>
+                Deck progress · {continueSession.learned} learned
+              </Text>
+              <ProgressTrack
+                percent={continueSession.deckProgressPercent}
+                colors={colors}
+              />
+
+              <View style={{ marginTop: spacing.lg }}>
+                <AppButton
+                  title="Resume"
+                  onPress={() =>
+                    router.push(
+                      `/study?deck=${encodeURIComponent(continueSession.name)}&resume=1`,
+                    )
+                  }
+                />
+              </View>
             </AppCard>
           </FadeInView>
         ) : (
@@ -322,10 +399,57 @@ export default function HomeScreen() {
           </FadeInView>
         )}
 
+        <SectionTitle
+          title="Starter Decks"
+          subtitle="Ready-made decks to jump in fast"
+          colors={colors}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: spacing.md,
+            marginBottom: spacing.lg,
+          }}>
+          {starterDeckEntries.map((deck, index) => {
+            const accentKey = deck.meta.accent;
+            const accentColor = colors[accentKey];
+            const accentSoft =
+              accentKey === 'primary'
+                ? colors.primarySoft
+                : accentKey === 'secondary'
+                  ? colors.secondarySoft
+                  : colors.accentSoft;
+
+            return (
+              <View
+                key={deck.name}
+                style={{
+                  width: starterDeckColumns === 1 ? '100%' : starterDeckWidth,
+                  flexGrow: starterDeckColumns === 1 ? 1 : 0,
+                }}>
+                <FadeInView delay={motion.stagger * (3 + index)}>
+                  <StarterDeckCard
+                    name={deck.name}
+                    cardCount={deck.cardCount}
+                    icon={deck.meta.icon}
+                    accentColor={accentColor}
+                    accentSoft={accentSoft}
+                    colors={colors}
+                    onStudy={() =>
+                      router.push(`/study?deck=${encodeURIComponent(deck.name)}`)
+                    }
+                  />
+                </FadeInView>
+              </View>
+            );
+          })}
+        </View>
+
         <SectionTitle title="My Decks" colors={colors} />
         <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
-          {deckList.length > 0 ? (
-            deckList.map((deck, index) => (
+          {customDeckList.length > 0 ? (
+            customDeckList.map((deck, index) => (
               <Pressable
                 key={deck.name}
                 onPress={() => router.push(`/study?deck=${encodeURIComponent(deck.name)}`)}
@@ -374,11 +498,9 @@ export default function HomeScreen() {
               </Pressable>
             ))
           ) : (
-            <AppCard>
-              <Text style={[typography.body, { color: colors.muted }]}>
-                No decks yet. Add your first card to create one.
-              </Text>
-            </AppCard>
+            <FadeInView delay={motion.stagger * 4}>
+              <CustomDecksEmptyState colors={colors} isDark={isDark} />
+            </FadeInView>
           )}
         </View>
 
