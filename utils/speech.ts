@@ -1,6 +1,10 @@
 import * as Speech from 'expo-speech';
 
-const ENGLISH_LANGUAGE = 'en-US';
+export const SPEECH_LANGUAGE = 'en-US';
+
+export function stopSpeaking() {
+  Speech.stop();
+}
 
 export function speakEnglish(text: string) {
   const trimmed = text.trim();
@@ -9,9 +13,9 @@ export function speakEnglish(text: string) {
     return;
   }
 
-  Speech.stop();
+  stopSpeaking();
   Speech.speak(trimmed, {
-    language: ENGLISH_LANGUAGE,
+    language: SPEECH_LANGUAGE,
     rate: 0.95,
     pitch: 1,
   });

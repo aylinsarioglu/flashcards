@@ -404,7 +404,6 @@ export default function StudyScreen() {
             <Flashcard
               key={`${currentCard.id}-${flipResetKeys[currentCard.id] ?? 0}`}
               size="study"
-              showDeckBadge={false}
               front={currentCard.front}
               back={currentCard.back}
               deck={currentCard.deck}
@@ -413,17 +412,6 @@ export default function StudyScreen() {
               favorite={currentCardWithFavorite?.favorite}
               learned={currentCard.learned}
             />
-            <Text
-              style={[
-                dsTypography.caption,
-                {
-                  color: colors.muted,
-                  marginTop: dsSpacing[12],
-                  fontWeight: '600',
-                },
-              ]}>
-              Tap card to flip
-            </Text>
           </View>
         </FadeInView>
 
